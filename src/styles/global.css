@@ -365,8 +365,8 @@ h1, h2, h3, p { margin-top: 0; }
   .chapter-screen { grid-template-columns: 1fr; max-width: 460px; }
   .chapter-card { width: 100%; min-height: 500px; }
   .pair-cards, .pair-cards--closed { grid-template-columns: minmax(0, 440px); }
-  .pair-cards--closed .pair-option:last-child { margin-top: -390px; transform: translate(18px, 28px) rotate(4deg); }
-  .pair-cards--closed .pair-option:first-child { transform: translate(-18px, -10px) rotate(-4deg); }
+  .pair-cards--closed .pair-option:last-child { margin-top: 8px; transform: rotate(2deg); }
+  .pair-cards--closed .pair-option:first-child { transform: rotate(-2deg); }
   .mobile-note { display: block; font-size: 13px; }
   .game-card { min-height: 500px; padding: 24px; }
   .game-card--face::before { left: 24px; right: 24px; }
@@ -413,7 +413,6 @@ h1, h2, h3, p { margin-top: 0; }
   .game-card--small { min-height: 430px; }
   .card-prompt { font-size: 28px; }
   .pair-screen h1 { font-size: 42px; }
-  .pair-cards--closed .pair-option:last-child { margin-top: -335px; }
   .guess-panel .button-row, .closing-screen .button-row, .result-page .button-row { display: grid; width: 100%; }
   .modal { width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 18px; }
   .modal__sheet { max-height: calc(100dvh - 18px); }

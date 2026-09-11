@@ -585,7 +585,7 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
           {(session.phase === 'pair_closed' || session.phase === 'pair_open') && (
             <section className="pair-screen">
               {session.phase === 'pair_closed'
-                ? <div><p className="eyebrow">{currentChapter.number} · {currentChapter.title}</p><h1>Две карточки на столе</h1><p>Нажмите на любую карточку — обе перевернутся, и герой выберет вопрос.</p></div>
+                ? <div><p className="eyebrow">{currentChapter.number} · {currentChapter.title}</p><h1>Две карточки на столе</h1><p>Переворачивайте карточки по одной. Когда откроете обе, герой выберет вопрос.</p></div>
                 : <div><p className="eyebrow">Выбирает {ROLE_LABELS[session.role].toLocaleLowerCase('ru')}</p><h1>Какую историю расскажем?</h1><p className="mobile-note">Вторая карточка ниже.</p></div>}
               <div className={`pair-cards ${session.phase === 'pair_closed' ? 'pair-cards--closed' : ''}`}>
                 {session.candidates.map((id) => {
@@ -609,8 +609,8 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
                         } : undefined}
                       >
                         <div className="flip-card__inner">
-                          <div className="flip-card__side flip-card__side--back"><CardBack chapter={currentChapter} small /></div>
-                          <div className="flip-card__side flip-card__side--face"><QuestionCardFace card={card} chapter={currentChapter} compact /></div>
+                          <div className="flip-card__side flip-card__side--back" aria-hidden={flipped}><CardBack chapter={currentChapter} small /></div>
+                          <div className="flip-card__side flip-card__side--face" aria-hidden={!flipped}><QuestionCardFace card={card} chapter={currentChapter} compact /></div>
                         </div>
                       </div>
                       {session.phase === 'pair_open' && <button className="button button--game button--wide" type="button" onClick={() => send('SELECT_QUESTION', id)}>Выбрать этот вопрос</button>}
