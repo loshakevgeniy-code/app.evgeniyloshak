@@ -569,18 +569,44 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
         <GameTopBar session={session} deck={deck} onPause={() => send('PAUSE')} onFinish={() => send('GO_TO_CLOSING')} onRules={() => setRulesOpen(true)} />
         <main className="play-main">
           {session.phase === 'chapter_intro' && <ChapterIntro chapter={currentChapter} onDraw={() => send('DRAW_PAIR')} onSkip={() => send('SKIP_CHAPTER')} />}
-          {session.phase === 'pair_closed' && (
+          {(session.phase === 'pair_closed' || session.phase === 'pair_open') && (
             <section className="pair-screen">
-              <div><p className="eyebrow">{currentChapter.number} · {currentChapter.title}</p><h1>Две карточки на столе</h1><p>Сначала откройте обе, затем герой выберет одну.</p></div>
-              <div className="pair-cards pair-cards--closed">{session.candidates.map((id) => <CardBack chapter={currentChapter} small key={id} />)}</div>
-              <button className="button button--game" type="button" onClick={() => send('REVEAL_PAIR')}>Открыть два вопроса</button>
-            </section>
-          )}
-          {session.phase === 'pair_open' && (
-            <section className="pair-screen">
-              <div><p className="eyebrow">Выбирает {ROLE_LABELS[session.role].toLocaleLowerCase('ru')}</p><h1>Какую историю расскажем?</h1><p className="mobile-note">Вторая карточка ниже.</p></div>
-              <div className="pair-cards">{session.candidates.map((id) => { const card = questionById(deck, id); return card ? <div className="pair-option" key={id}><QuestionCardFace card={card} chapter={currentChapter} compact /><button className="button button--game button--wide" type="button" onClick={() => send('SELECT_QUESTION', id)}>Выбрать этот вопрос</button></div> : null })}</div>
-              <div className="button-row"><button className="button button--paper" type="button" onClick={() => send('REPLACE_PAIR')}>Другие вопросы</button><button className="link-button" type="button" onClick={() => send('SKIP_CHAPTER')}>Пропустить главу</button></div>
+              {session.phase === 'pair_closed'
+                ? <div><p className="eyebrow">{currentChapter.number} · {currentChapter.title}</p><h1>Две карточки на столе</h1><p>Нажмите на любую карточку — обе перевернутся, и герой выберет вопрос.</p></div>
+                : <div><p className="eyebrow">Выбирает {ROLE_LABELS[session.role].toLocaleLowerCase('ru')}</p><h1>Какую историю расскажем?</h1><p className="mobile-note">Вторая карточка ниже.</p></div>}
+              <div className={`pair-cards ${session.phase === 'pair_closed' ? 'pair-cards--closed' : ''}`}>
+                {session.candidates.map((id) => {
+                  const card = questionById(deck, id)
+                  if (!card) return null
+                  const closed = session.phase === 'pair_closed'
+                  return (
+                    <div className="pair-option" key={id}>
+                      <div
+                        className={`flip-card ${closed ? '' : 'is-flipped'}`}
+                        role={closed ? 'button' : undefined}
+                        tabIndex={closed ? 0 : undefined}
+                        aria-label={closed ? 'Перевернуть две карточки' : undefined}
+                        onClick={closed ? () => send('REVEAL_PAIR') : undefined}
+                        onKeyDown={closed ? (event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            send('REVEAL_PAIR')
+                          }
+                        } : undefined}
+                      >
+                        <div className="flip-card__inner">
+                          <div className="flip-card__side flip-card__side--back"><CardBack chapter={currentChapter} small /></div>
+                          <div className="flip-card__side flip-card__side--face"><QuestionCardFace card={card} chapter={currentChapter} compact /></div>
+                        </div>
+                      </div>
+                      {!closed && <button className="button button--game button--wide" type="button" onClick={() => send('SELECT_QUESTION', id)}>Выбрать этот вопрос</button>}
+                    </div>
+                  )
+                })}
+              </div>
+              {session.phase === 'pair_closed'
+                ? <button className="button button--game" type="button" onClick={() => send('REVEAL_PAIR')}>Открыть два вопроса</button>
+                : <div className="button-row"><button className="button button--paper" type="button" onClick={() => send('REPLACE_PAIR')}>Другие вопросы</button><button className="link-button" type="button" onClick={() => send('SKIP_CHAPTER')}>Пропустить главу</button></div>}
             </section>
           )}
           {session.phase === 'guess' && activeCard && (

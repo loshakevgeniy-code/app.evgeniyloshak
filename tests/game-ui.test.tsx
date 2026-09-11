@@ -30,6 +30,16 @@ describe('основной игровой сценарий', () => {
     vi.spyOn(Date, 'now').mockImplementation(() => { now += 500; return now })
   })
 
+  it('переворачивает закрытую пару по нажатию на карточку', () => {
+    render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
+    beginGame(4)
+    fireEvent.click(screen.getByRole('button', { name: 'Взять две карточки' }))
+    const closedCards = screen.getAllByRole('button', { name: 'Перевернуть две карточки' })
+    fireEvent.click(closedCards[0])
+    expect(closedCards[0]).toHaveClass('is-flipped')
+    expect(screen.getAllByRole('button', { name: 'Выбрать этот вопрос' })).toHaveLength(2)
+  })
+
   it('проходит короткую партию через интерфейс', () => {
     render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
     beginGame(4)
