@@ -5,10 +5,10 @@ import { cardMatches, normalizeSearch } from '../src/features/catalog/search'
 import type { Deck, QuestionCard } from '../src/types'
 
 describe('колода', () => {
-  it('валидирует все 35 карточек и связи', () => {
+  it('валидирует все 70 карточек и связи', () => {
     const deck = validateDeck(rawDeck)
-    expect(deck.cards).toHaveLength(35)
-    expect(deck.cards.filter((card) => card.type === 'question')).toHaveLength(24)
+    expect(deck.cards).toHaveLength(70)
+    expect(deck.cards.filter((card) => card.type === 'question')).toHaveLength(59)
     expect(deck.cards.filter((card) => card.type === 'follow_up')).toHaveLength(8)
   })
 

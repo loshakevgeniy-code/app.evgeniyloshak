@@ -277,7 +277,11 @@ export function assertGameInvariants(deck: Deck, state: GameSession): string[] {
   const errors: string[] = []
   for (const chapter of deck.chapters) {
     const current = state.chapters[chapter.id]
-    if (!current || current.order.length !== 6 || new Set(current.order).size !== 6) errors.push(`order:${chapter.id}`)
+    if (
+      !current
+      || current.order.length !== chapter.cardIds.length
+      || new Set(current.order).size !== chapter.cardIds.length
+    ) errors.push(`order:${chapter.id}`)
     if (current && (current.cursor < 0 || current.cursor > current.order.length)) errors.push(`cursor:${chapter.id}`)
   }
   if (['pair_closed', 'pair_open'].includes(state.phase) && (!state.candidates.length || state.activeQuestionId)) errors.push('pair-shape')

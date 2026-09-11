@@ -12,14 +12,14 @@ export function validateDeck(input: unknown): Deck {
     result[card.type] = (result[card.type] || 0) + 1
     return result
   }, {})
-  if (counts.question !== 24 || counts.follow_up !== 8 || counts.special !== 2 || counts.closing !== 1) {
-    throw new Error('Состав колоды не совпадает с редакцией 1.0.0.')
+  if (counts.question !== 59 || counts.follow_up !== 8 || counts.special !== 2 || counts.closing !== 1) {
+    throw new Error('Состав колоды не совпадает с редакцией 1.1.0.')
   }
 
   const cardIds = new Set<string>(ids)
   for (const chapter of deck.chapters) {
-    if (chapter.cardIds.length !== 6 || new Set(chapter.cardIds).size !== 6) {
-      throw new Error(`В главе «${chapter.title}» должно быть шесть разных вопросов.`)
+    if (chapter.cardIds.length < 14 || new Set(chapter.cardIds).size !== chapter.cardIds.length) {
+      throw new Error(`В главе «${chapter.title}» должно быть не меньше четырнадцати разных вопросов.`)
     }
     for (const id of chapter.cardIds) {
       const card = deck.cards.find((candidate) => candidate.id === id) as QuestionCard | undefined

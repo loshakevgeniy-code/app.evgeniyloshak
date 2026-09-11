@@ -18,6 +18,13 @@ function currentRoute(): Route {
   return window.location.pathname.startsWith('/game') ? 'game' : 'cabinet'
 }
 
+export function isStandaloneApp() {
+  const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
+  const displayModeStandalone = typeof window.matchMedia === 'function'
+    && window.matchMedia('(display-mode: standalone)').matches
+  return iosStandalone || displayModeStandalone
+}
+
 function LoginScreen({ onLogin }: { onLogin: (payload: AuthPayload) => void }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -83,11 +90,13 @@ function Cabinet({
   onOpenGame,
   onLogout,
   onInstall,
+  isInstalled,
 }: {
   auth: AuthPayload
   onOpenGame: () => void
   onLogout: () => void
   onInstall: () => void
+  isInstalled: boolean
 }) {
   const gameAccess = auth.products.some((product) => product.slug === 'know-you' && product.status === 'active')
   const [profileOpen, setProfileOpen] = useState(false)
@@ -106,7 +115,7 @@ function Cabinet({
       <header className="cabinet-header">
         <BrandMark compact />
         <nav className="cabinet-desktop-nav" aria-label="Навигация кабинета">
-          <button className="button button--ghost" type="button" onClick={onInstall}>Установить приложение</button>
+          {!isInstalled && <button className="button button--ghost" type="button" onClick={onInstall}>Установить приложение</button>}
           <span className="cabinet-user">{auth.user.displayName}</span>
           <button className="round-button" type="button" onClick={onLogout} aria-label="Выйти из кабинета">↪</button>
         </nav>
@@ -128,7 +137,7 @@ function Cabinet({
             <div className="product-card__copy">
               <p className="product-card__status"><span className="dot dot--lime" /> {gameAccess ? 'Доступ открыт' : 'Доступ не открыт'}</p>
               <h3>Кажется,<br />я тебя знаю</h3>
-              <p>Карточная игра для разговора двух взрослых людей. 35 карточек, четыре главы и никакой оценки ответов.</p>
+              <p>Карточная игра для разговора двух взрослых людей. 70 карточек, четыре главы и никакой оценки ответов.</p>
               <button className="button button--lime" type="button" onClick={onOpenGame} disabled={!gameAccess}>
                 Открыть игру <span aria-hidden="true">→</span>
               </button>
@@ -136,21 +145,23 @@ function Cabinet({
             <div className="product-card__art" aria-hidden="true">
               <div className="mini-card mini-card--ochre">01</div>
               <div className="mini-card mini-card--blue">03</div>
-              <div className="mini-card mini-card--paper"><span>?</span><small>35 карточек</small></div>
+              <div className="mini-card mini-card--paper"><span>?</span><small>70 карточек</small></div>
             </div>
           </article>
         </section>
       </main>
-      <nav className="mobile-tabbar" aria-label="Основное меню">
+      <nav className={`mobile-tabbar ${isInstalled ? 'mobile-tabbar--three' : ''}`} aria-label="Основное меню">
         <button className={`mobile-tabbar__item ${activeTab === 'home' ? 'is-active' : ''}`} type="button" onClick={() => { setActiveTab('home'); scrollTo() }} aria-label="Главная" aria-current={activeTab === 'home' ? 'page' : undefined}>
           <AppIcon name="home" /><span>Главная</span>
         </button>
         <button className={`mobile-tabbar__item ${activeTab === 'products' ? 'is-active' : ''}`} type="button" onClick={() => { setActiveTab('products'); scrollTo('cabinet-products') }} aria-label="Продукты" aria-current={activeTab === 'products' ? 'page' : undefined}>
           <AppIcon name="products" /><span>Продукты</span>
         </button>
-        <button className="mobile-tabbar__item" type="button" onClick={onInstall} aria-label="Установить приложение">
-          <AppIcon name="install" /><span>Установить</span>
-        </button>
+        {!isInstalled && (
+          <button className="mobile-tabbar__item" type="button" onClick={onInstall} aria-label="Установить приложение">
+            <AppIcon name="install" /><span>Установить</span>
+          </button>
+        )}
         <button className={`mobile-tabbar__item ${activeTab === 'profile' ? 'is-active' : ''}`} type="button" onClick={() => { setActiveTab('profile'); setProfileOpen(true) }} aria-label="Профиль" aria-current={activeTab === 'profile' ? 'page' : undefined}>
           <AppIcon name="profile" /><span>Профиль</span>
         </button>
@@ -193,6 +204,7 @@ export default function App() {
   const [bootError, setBootError] = useState('')
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null)
   const [installHelp, setInstallHelp] = useState(false)
+  const [isInstalled, setIsInstalled] = useState(isStandaloneApp)
 
   useEffect(() => {
     getMe().then(setAuth).catch(() => {
@@ -207,11 +219,22 @@ export default function App() {
       event.preventDefault()
       setInstallPrompt(event as InstallPromptEvent)
     }
+    const displayMode = window.matchMedia('(display-mode: standalone)')
+    const onDisplayModeChange = () => setIsInstalled(isStandaloneApp())
+    const onAppInstalled = () => {
+      setIsInstalled(true)
+      setInstallPrompt(null)
+      setInstallHelp(false)
+    }
     window.addEventListener('popstate', onPopState)
     window.addEventListener('beforeinstallprompt', onBeforeInstall)
+    window.addEventListener('appinstalled', onAppInstalled)
+    displayMode.addEventListener('change', onDisplayModeChange)
     return () => {
       window.removeEventListener('popstate', onPopState)
       window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+      window.removeEventListener('appinstalled', onAppInstalled)
+      displayMode.removeEventListener('change', onDisplayModeChange)
     }
   }, [])
 
@@ -228,7 +251,8 @@ export default function App() {
       return
     }
     await installPrompt.prompt()
-    await installPrompt.userChoice
+    const choice = await installPrompt.userChoice
+    if (choice.outcome === 'accepted') setIsInstalled(true)
     setInstallPrompt(null)
   }
 
@@ -246,7 +270,7 @@ export default function App() {
     <>
       {route === 'game'
         ? <GameRoute onBack={() => navigate('cabinet')} />
-        : <Cabinet auth={auth} onOpenGame={() => navigate('game')} onLogout={handleLogout} onInstall={requestInstall} />}
+        : <Cabinet auth={auth} onOpenGame={() => navigate('game')} onLogout={handleLogout} onInstall={requestInstall} isInstalled={isInstalled} />}
       {installHelp && (
         <Modal title="Установить приложение" eyebrow="Быстрый доступ" onClose={() => setInstallHelp(false)}>
           <div className="prose">

@@ -313,6 +313,13 @@ function Catalog({
   const [query, setQuery] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
   const favorites = useMemo(() => new Set(preferences.favorites), [preferences.favorites])
+  const totals = useMemo(() => ({
+    all: deck.cards.length,
+    question: deck.cards.filter((card) => card.type === 'question').length,
+    follow_up: deck.cards.filter((card) => card.type === 'follow_up').length,
+    special: deck.cards.filter((card) => card.type === 'special').length,
+    closing: deck.cards.filter((card) => card.type === 'closing').length,
+  }), [deck.cards])
   const filtered = useMemo(() => deck.cards.filter((card) => {
     const typeMatch = type === 'all' || (type === 'favorites' ? favorites.has(card.id) : card.type === type)
     const chapterMatch = chapterId === 'all' || (card.type === 'question' && card.chapterId === chapterId)
@@ -325,7 +332,7 @@ function Catalog({
     <div className="catalog-page game-table">
       <header className="catalog-header">
         <button className="back-link" type="button" onClick={onBack}>← В игру</button>
-        <p className="eyebrow">Все 35 карточек</p>
+        <p className="eyebrow">Все {totals.all} карточек</p>
         <h1>Вся колода</h1>
         <p>Каталог не меняет ход партии. Здесь можно спокойно читать карточки и отмечать нужные закладкой.</p>
       </header>
@@ -333,8 +340,8 @@ function Catalog({
         <label className="search-field"><span className="sr-only">Поиск по карточкам</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Поиск по названию и вопросу" /></label>
         <div className="filter-row" aria-label="Тип карточек">
           {([
-            ['all', 'Все 35'], ['question', 'Вопросы 24'], ['follow_up', 'Уточнения 8'],
-            ['special', 'Специальные 2'], ['closing', 'Финал 1'], ['favorites', 'Избранное'],
+            ['all', `Все ${totals.all}`], ['question', `Вопросы ${totals.question}`], ['follow_up', `Уточнения ${totals.follow_up}`],
+            ['special', `Специальные ${totals.special}`], ['closing', `Финал ${totals.closing}`], ['favorites', 'Избранное'],
           ] as [CatalogType, string][]).map(([id, label]) => <button type="button" className={`filter-pill ${type === id ? 'is-active' : ''}`} onClick={() => setType(id)} key={id}>{label}</button>)}
         </div>
         {(type === 'all' || type === 'question') && (

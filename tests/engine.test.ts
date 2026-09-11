@@ -97,7 +97,8 @@ describe('игровой движок', () => {
   it('доходит до исчерпания главы после замен', () => {
     let state = createGameSession(deck, { role: 'brother', gameSize: 8, recordingMode: 'conversation' }, () => 0.1, timestamp)
     state = run(state, 'START_AFTER_RULES')
-    for (let pair = 0; pair < 3; pair += 1) {
+    const pairCount = Math.ceil(deck.chapters[0].cardIds.length / 2)
+    for (let pair = 0; pair < pairCount; pair += 1) {
       state = run(state, 'DRAW_PAIR')
       state = run(state, 'REPLACE_PAIR')
     }
