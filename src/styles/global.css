@@ -85,8 +85,89 @@ h1, h2, h3, p { margin-top: 0; }
 .loading-mark { width: 38px; height: 38px; border-radius: 50%; border: 4px solid rgba(44,33,25,.12); border-top-color: var(--game-brand); animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Public landing */
+.landing-page { overflow: hidden; background-color: var(--paper); background-image: linear-gradient(rgba(247,240,231,.89), rgba(247,240,231,.89)), var(--paper-texture); background-size: auto, 560px 560px; }
+.landing-header { position: absolute; z-index: 5; top: 0; left: 50%; width: min(1440px, 100%); min-height: 96px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 30px; padding: 20px clamp(24px, 5vw, 78px); transform: translateX(-50%); }
+.landing-logo { justify-self: start; color: inherit; text-decoration: none; }
+.landing-nav { display: flex; align-items: center; gap: 32px; }
+.landing-nav a, .landing-footer button { color: var(--site-ink); font-size: 13px; font-weight: 720; text-decoration: none; }
+.landing-nav a:hover { color: var(--game-brand); }
+.button--landing-header { min-height: 46px; justify-self: end; padding-inline: 26px; border-color: var(--site-line); background: rgba(247,240,231,.7); backdrop-filter: blur(10px); }
+.landing-hero { width: min(1440px, 100%); min-height: 100svh; display: grid; grid-template-columns: .92fr 1.08fr; margin: 0 auto; }
+.landing-hero__copy { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 150px clamp(28px, 5vw, 78px) 78px; }
+.landing-hero__copy h1 { margin: 24px 0 30px; font-family: var(--serif); font-size: clamp(64px, 6.7vw, 104px); font-weight: 400; line-height: .91; letter-spacing: -.055em; }
+.landing-hero__copy h1 em { color: var(--game-brand); font-weight: 400; }
+.landing-lead { max-width: 590px; margin-bottom: 34px; color: var(--site-muted); font-size: clamp(17px, 1.35vw, 21px); line-height: 1.62; }
+.landing-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.landing-text-link { min-height: 48px; display: inline-flex; align-items: center; color: var(--site-ink); font-size: 14px; font-weight: 730; text-underline-offset: 5px; }
+.landing-microcopy { margin: auto 0 0; padding-top: 56px; color: var(--site-muted); font-size: 10px; font-weight: 720; letter-spacing: .2em; text-transform: uppercase; }
+.landing-hero__visual { position: relative; min-height: 760px; overflow: hidden; border-radius: 0 0 0 180px; color: var(--paper); background-color: var(--site-ink); background-image: linear-gradient(90deg, rgba(35,24,16,.16), rgba(35,24,16,.04) 42%, rgba(35,24,16,.28)), url('/lilya-hero.jpg'); background-position: 58% center; background-size: cover; box-shadow: -30px 30px 80px rgba(44,33,25,.1); }
+.landing-hero__visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30,20,13,.05) 45%, rgba(30,20,13,.66)); pointer-events: none; }
+.landing-hero__note { position: absolute; z-index: 2; top: 126px; right: clamp(24px, 4vw, 60px); margin: 0; padding-top: 16px; border-top: 1px solid rgba(247,240,231,.6); font-size: 10px; font-weight: 650; letter-spacing: .2em; line-height: 1.75; text-transform: uppercase; }
+.landing-question-card { position: absolute; z-index: 2; left: clamp(36px, 6vw, 96px); bottom: 90px; width: min(34%, 260px); aspect-ratio: 3 / 4; display: grid; grid-template-rows: auto 1fr auto auto; justify-items: center; align-items: center; padding: 22px; border: 1px solid rgba(61,42,29,.18); border-radius: 18px; background-color: var(--paper); background-image: linear-gradient(rgba(247,240,231,.82), rgba(247,240,231,.82)), var(--paper-texture); background-size: auto, 360px 360px; color: var(--site-ink); box-shadow: 0 28px 58px rgba(24,15,10,.38); transform: rotate(-5deg); text-align: center; }
+.landing-question-card__number { justify-self: start; color: var(--site-muted); font-size: 9px; letter-spacing: .15em; }
+.landing-question-card .lily-mark { width: 36px; height: 42px; color: var(--game-brand); }
+.landing-question-card p { margin: 0; font-family: var(--serif); font-size: clamp(18px, 1.8vw, 27px); line-height: 1.15; }
+.landing-question-card strong { color: var(--game-brand); font-family: var(--serif); font-size: 13px; font-weight: 400; letter-spacing: .28em; text-indent: .28em; }
+.landing-hero__signature { position: absolute; z-index: 2; right: clamp(28px, 5vw, 70px); bottom: 46px; display: grid; justify-items: center; gap: 8px; text-shadow: 0 3px 18px rgba(0,0,0,.45); }
+.landing-hero__signature strong { font-family: var(--serif); font-size: 30px; font-weight: 400; letter-spacing: .32em; text-indent: .32em; }
+.landing-hero__signature span { font-size: 8px; font-weight: 650; letter-spacing: .25em; text-transform: uppercase; }
+.landing-section { width: min(1280px, calc(100% - 48px)); margin: 0 auto; }
+.landing-intro { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 42px; padding: 150px 0 140px; }
+.landing-section__label { padding-top: 11px; border-top: 1px solid var(--site-line); }
+.landing-section__label span { display: block; margin-bottom: 22px; color: var(--game-brand); font-family: var(--serif); font-size: 21px; }
+.landing-intro__copy h2, .landing-section__heading h2, .landing-how h2, .landing-final h2 { font-family: var(--serif); font-size: clamp(52px, 6vw, 86px); font-weight: 400; line-height: .96; letter-spacing: -.045em; }
+.landing-intro__copy h2 { margin: 0 0 30px; }
+.landing-intro__copy > p { max-width: 720px; color: var(--site-muted); font-size: 19px; line-height: 1.65; }
+.landing-facts { grid-column: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 50px 0 0; border-top: 1px solid var(--site-line); border-bottom: 1px solid var(--site-line); }
+.landing-facts div { min-height: 150px; display: grid; align-content: center; gap: 7px; padding: 24px; border-right: 1px solid var(--site-line); }
+.landing-facts div:first-child { padding-left: 0; }
+.landing-facts div:last-child { border-right: 0; }
+.landing-facts dt { color: var(--game-brand); font-family: var(--serif); font-size: 52px; line-height: 1; }
+.landing-facts dd { margin: 0; color: var(--site-muted); font-size: 13px; }
+.landing-experience { padding-bottom: 150px; }
+.landing-section__heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 50px; margin-bottom: 50px; }
+.landing-section__heading .eyebrow { width: 250px; margin-bottom: 10px; }
+.landing-section__heading h2 { margin: 0; }
+.landing-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.landing-features article { min-height: 340px; display: flex; flex-direction: column; padding: clamp(26px, 3vw, 42px); border: 1px solid var(--site-line); border-radius: 4px 34px 4px 34px; background-color: rgba(247,240,231,.66); background-image: linear-gradient(rgba(247,240,231,.83), rgba(247,240,231,.83)), var(--paper-texture); background-size: auto, 360px 360px; }
+.landing-features article:nth-child(2) { color: var(--paper); background-color: var(--game-brand); background-image: linear-gradient(rgba(104,29,38,.88), rgba(104,29,38,.88)), var(--paper-texture); }
+.landing-features article:nth-child(3) { border-color: transparent; color: var(--paper); background-color: var(--chapter-turns); background-image: linear-gradient(rgba(78,82,50,.88), rgba(78,82,50,.88)), var(--paper-texture); }
+.landing-features article > span { color: inherit; font-family: var(--serif); font-size: 18px; opacity: .72; }
+.landing-features h3 { margin: auto 0 16px; font-family: var(--serif); font-size: 38px; font-weight: 400; }
+.landing-features p { margin-bottom: 0; color: inherit; font-size: 15px; line-height: 1.6; opacity: .78; }
+.landing-how { min-height: 780px; display: grid; grid-template-columns: .95fr 1.05fr; color: var(--paper); background-color: var(--site-ink); background-image: linear-gradient(rgba(44,33,25,.92), rgba(44,33,25,.92)), var(--paper-texture); background-size: auto, 560px 560px; }
+.landing-how__copy { display: flex; flex-direction: column; justify-content: center; padding: 80px clamp(28px, 6vw, 92px); }
+.landing-how h2 { margin: 20px 0 52px; }
+.landing-how ol { display: grid; gap: 26px; margin: 0; padding: 0; list-style: none; }
+.landing-how li { display: grid; grid-template-columns: 42px 1fr; gap: 16px; padding-top: 20px; border-top: 1px solid rgba(247,240,231,.2); }
+.landing-how li > span { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid rgba(247,240,231,.4); border-radius: 50%; font-family: var(--serif); }
+.landing-how li p { margin: 0; color: rgba(247,240,231,.68); line-height: 1.55; }
+.landing-how li strong { color: var(--paper); }
+.landing-card-scene { position: relative; min-height: 780px; overflow: hidden; background-image: linear-gradient(180deg, rgba(35,24,16,.08), rgba(35,24,16,.5)), url('/lilya-hero.jpg'); background-position: 63% center; background-size: cover; }
+.landing-card { position: absolute; left: 50%; top: 50%; width: min(42%, 270px); aspect-ratio: 3 / 4; display: flex; flex-direction: column; border-radius: 22px; box-shadow: 0 30px 70px rgba(17,11,7,.48); }
+.landing-card--olive { justify-content: flex-end; padding: 28px; background: var(--chapter-turns); transform: translate(-88%, -48%) rotate(-13deg); }
+.landing-card--olive span { font-size: 10px; font-weight: 650; letter-spacing: .18em; line-height: 1.6; text-transform: uppercase; }
+.landing-card--wine { align-items: center; justify-content: center; gap: 22px; background-color: var(--game-brand); background-image: linear-gradient(rgba(104,29,38,.88), rgba(104,29,38,.88)), var(--paper-texture); background-size: auto, 300px 300px; transform: translate(-16%, -51%) rotate(11deg); text-align: center; }
+.landing-card--wine .lily-mark { width: 56px; height: 64px; }
+.landing-card--wine strong { font-size: 10px; font-weight: 650; letter-spacing: .2em; line-height: 1.7; }
+.landing-card--paper { z-index: 2; align-items: center; justify-content: space-between; padding: 26px; background-color: var(--paper); background-image: linear-gradient(rgba(247,240,231,.82), rgba(247,240,231,.82)), var(--paper-texture); background-size: auto, 320px 320px; color: var(--site-ink); transform: translate(-51%, -44%) rotate(-2deg); text-align: center; }
+.landing-card--paper > span { align-self: flex-start; color: var(--site-muted); font-size: 9px; }
+.landing-card--paper .lily-mark { width: 42px; height: 48px; color: var(--game-brand); }
+.landing-card--paper p { margin: 0; font-family: var(--serif); font-size: clamp(20px, 2.2vw, 31px); line-height: 1.16; }
+.landing-card--paper strong { color: var(--game-brand); font-family: var(--serif); font-size: 14px; font-weight: 400; letter-spacing: .28em; text-indent: .28em; }
+.landing-final { min-height: 650px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 24px; text-align: center; }
+.landing-final > .lily-mark { width: 58px; height: 68px; margin-bottom: 22px; color: var(--game-brand); }
+.landing-final h2 { margin: 22px 0 26px; }
+.landing-final > p:not(.eyebrow) { max-width: 550px; margin-bottom: 30px; color: var(--site-muted); font-size: 17px; line-height: 1.6; }
+.landing-footer { min-height: 110px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; padding: 24px clamp(24px, 5vw, 72px); border-top: 1px solid var(--site-line); }
+.landing-footer p { margin: 0; color: var(--site-muted); font-family: var(--serif); font-size: 16px; }
+.landing-footer button { justify-self: end; min-height: 48px; border: 0; background: none; text-decoration: underline; text-underline-offset: 5px; }
+
 .auth-page { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, .9fr) minmax(480px, 1.1fr); padding: 0; gap: 0; background: var(--paper); }
 .auth-panel { display: flex; flex-direction: column; padding: clamp(28px, 5vw, 78px); background-color: var(--paper); background-image: linear-gradient(rgba(247,240,231,.84), rgba(247,240,231,.84)), var(--paper-texture); background-size: auto, 520px 520px; }
+.auth-topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.auth-back { min-height: 48px; padding: 8px 0; border: 0; background: none; color: var(--site-muted); font-size: 13px; font-weight: 720; text-decoration: underline; text-underline-offset: 4px; }
 .auth-copy { width: min(600px, 100%); margin: auto 0 36px; }
 .auth-copy h1 { margin: 20px 0 24px; font-family: var(--serif); font-size: clamp(50px, 6vw, 86px); font-weight: 400; line-height: .94; letter-spacing: -.045em; }
 .auth-copy > p:last-child { max-width: 560px; color: var(--site-muted); font-size: 18px; line-height: 1.6; }
@@ -360,6 +441,17 @@ h1, h2, h3, p { margin-top: 0; }
 .toast button { width: 40px; height: 40px; border: 0; background: transparent; color: inherit; font-size: 22px; }
 
 @media (max-width: 980px) {
+  .landing-header { min-height: 82px; padding-block: 16px; }
+  .landing-hero { min-height: auto; grid-template-columns: 1fr; padding-top: 82px; }
+  .landing-hero__copy { min-height: 650px; padding-top: 90px; }
+  .landing-hero__visual { min-height: 680px; border-radius: 120px 0 0 0; }
+  .landing-intro { grid-template-columns: 120px minmax(0, 1fr); }
+  .landing-facts { grid-column: 2; }
+  .landing-section__heading { display: grid; }
+  .landing-features { grid-template-columns: 1fr; }
+  .landing-features article { min-height: 260px; }
+  .landing-how { grid-template-columns: 1fr; }
+  .landing-card-scene { min-height: 680px; }
   .auth-page { grid-template-columns: 1fr; }
   .auth-visual { min-height: 480px; border-radius: 0 0 80px 0; }
   .auth-copy { margin-top: 100px; }
@@ -376,6 +468,60 @@ h1, h2, h3, p { margin-top: 0; }
   html { background: var(--site-soft); }
   body { background: var(--site-soft); }
   .button { min-height: 52px; padding-inline: 18px; font-size: 15px; }
+
+  /* Mobile landing */
+  .landing-page { background-size: auto, 440px 440px; }
+  .landing-header { position: absolute; min-height: calc(72px + env(safe-area-inset-top)); grid-template-columns: 1fr auto; padding: max(14px, env(safe-area-inset-top)) 16px 12px; }
+  .landing-header .brand-tagline, .landing-nav { display: none; }
+  .landing-header .brand-lockup .lily-mark { width: 30px; height: 35px; }
+  .landing-header .brand-wordmark { font-size: 18px; }
+  .button--landing-header { min-height: 44px; padding: 9px 19px; }
+  .landing-hero { padding-top: calc(72px + env(safe-area-inset-top)); }
+  .landing-hero__copy { min-height: 0; padding: 62px 18px 50px; }
+  .landing-hero__copy h1 { margin: 18px 0 22px; font-size: clamp(49px, 15vw, 66px); line-height: .91; }
+  .landing-lead { margin-bottom: 28px; font-size: 16px; line-height: 1.52; }
+  .landing-actions { width: 100%; display: grid; gap: 10px; }
+  .landing-actions .button { width: 100%; }
+  .landing-text-link { justify-content: center; }
+  .landing-microcopy { margin-top: 38px; padding-top: 0; font-size: 9px; line-height: 1.7; }
+  .landing-hero__visual { min-height: 550px; border-radius: 82px 0 0 0; background-position: 61% center; }
+  .landing-hero__note { top: 42px; right: 20px; }
+  .landing-question-card { left: 28px; bottom: 55px; width: 186px; padding: 17px; border-radius: 15px; }
+  .landing-question-card p { font-size: 21px; }
+  .landing-question-card .lily-mark { width: 31px; height: 36px; }
+  .landing-hero__signature { right: 20px; bottom: 25px; }
+  .landing-hero__signature strong { font-size: 23px; }
+  .landing-section { width: calc(100% - 36px); }
+  .landing-intro { display: block; padding: 88px 0 82px; }
+  .landing-section__label { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 38px; }
+  .landing-section__label span, .landing-section__label p { margin: 0; }
+  .landing-intro__copy h2, .landing-section__heading h2, .landing-how h2, .landing-final h2 { font-size: clamp(42px, 12vw, 56px); }
+  .landing-intro__copy > p { font-size: 16px; line-height: 1.56; }
+  .landing-facts { grid-template-columns: 1fr; margin-top: 36px; }
+  .landing-facts div { min-height: 102px; grid-template-columns: 90px 1fr; align-items: center; padding: 18px 0; border-right: 0; border-bottom: 1px solid var(--site-line); }
+  .landing-facts div:last-child { border-bottom: 0; }
+  .landing-facts dt { font-size: 45px; }
+  .landing-experience { padding-bottom: 88px; }
+  .landing-section__heading { gap: 18px; margin-bottom: 32px; }
+  .landing-section__heading .eyebrow { width: auto; }
+  .landing-features { gap: 10px; }
+  .landing-features article { min-height: 250px; padding: 28px; border-radius: 3px 28px 3px 28px; }
+  .landing-features h3 { font-size: 36px; }
+  .landing-how { min-height: 0; }
+  .landing-how__copy { padding: 82px 18px 72px; }
+  .landing-how h2 { margin: 18px 0 42px; }
+  .landing-how li { grid-template-columns: 38px 1fr; gap: 10px; }
+  .landing-how li p { font-size: 14px; }
+  .landing-card-scene { min-height: 550px; }
+  .landing-card { width: 196px; border-radius: 17px; }
+  .landing-card--olive { padding: 20px; transform: translate(-84%, -48%) rotate(-13deg); }
+  .landing-card--wine { transform: translate(-14%, -51%) rotate(11deg); }
+  .landing-card--paper { padding: 19px; }
+  .landing-card--paper p { font-size: 24px; }
+  .landing-final { min-height: 610px; padding: 84px 18px; }
+  .landing-final .button { width: 100%; }
+  .landing-footer { grid-template-columns: 1fr auto; padding: 24px 18px; }
+  .landing-footer p { display: none; }
   .mobile-tabbar {
     position: fixed;
     z-index: 30;
@@ -584,6 +730,7 @@ h1, h2, h3, p { margin-top: 0; }
 @media (max-width: 480px) {
   .auth-page { padding: 0; }
   .auth-panel { min-height: 100dvh; padding: max(22px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom)); color: var(--paper); background-color: var(--site-ink); background-image: linear-gradient(180deg, rgba(36,25,17,.3), rgba(36,25,17,.78)), url('/lilya-hero.jpg'); background-position: 68% center; background-size: cover; }
+  .auth-back { color: rgba(247,240,231,.82); }
   .auth-panel .brand-lockup, .auth-panel .brand-tagline { color: var(--paper); }
   .auth-panel .auth-copy > p:last-child, .auth-panel .auth-form label, .auth-panel .auth-note { color: rgba(247,240,231,.8); }
   .auth-panel .auth-form input { border-color: rgba(247,240,231,.4); background: rgba(247,240,231,.92); color: var(--site-ink); }

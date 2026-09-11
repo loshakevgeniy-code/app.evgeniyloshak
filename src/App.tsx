@@ -4,6 +4,7 @@ import { BrandMark, LilyMark } from './components/BrandMark'
 import { AppIcon } from './components/AppIcon'
 import { Modal } from './components/Modal'
 import { GameApp } from './GameApp'
+import { LandingPage } from './LandingPage'
 import { validateDeck } from './data/validateDeck'
 import type { Deck } from './types'
 
@@ -12,10 +13,12 @@ interface InstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-type Route = 'cabinet' | 'game'
+type Route = 'landing' | 'login' | 'cabinet' | 'game'
 
 function currentRoute(): Route {
-  return window.location.pathname.startsWith('/game') ? 'game' : 'cabinet'
+  if (window.location.pathname.startsWith('/game')) return 'game'
+  if (window.location.pathname.startsWith('/login')) return 'login'
+  return 'landing'
 }
 
 export function isStandaloneApp() {
@@ -25,7 +28,7 @@ export function isStandaloneApp() {
   return iosStandalone || displayModeStandalone
 }
 
-function LoginScreen({ onLogin }: { onLogin: (payload: AuthPayload) => void }) {
+function LoginScreen({ onLogin, onBack }: { onLogin: (payload: AuthPayload) => void; onBack: () => void }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -47,7 +50,10 @@ function LoginScreen({ onLogin }: { onLogin: (payload: AuthPayload) => void }) {
   return (
     <main className="auth-page">
       <section className="auth-panel">
-        <BrandMark />
+        <div className="auth-topbar">
+          <BrandMark />
+          <button className="auth-back" type="button" onClick={onBack}>← О Lilya</button>
+        </div>
         <div className="auth-copy">
           <p className="eyebrow">Ближе к главному</p>
           <h1>Разговоры,<br />которые остаются</h1>
@@ -206,7 +212,10 @@ export default function App() {
   const [isInstalled, setIsInstalled] = useState(isStandaloneApp)
 
   useEffect(() => {
-    getMe().then(setAuth).catch(() => {
+    getMe().then((payload) => {
+      setAuth(payload)
+      if (payload && currentRoute() !== 'game') setRoute('cabinet')
+    }).catch(() => {
       setBootError('Не удалось связаться с кабинетом. Проверьте интернет и попробуйте ещё раз.')
       setAuth(null)
     })
@@ -237,11 +246,16 @@ export default function App() {
     }
   }, [])
 
-  function navigate(next: Route) {
-    const path = next === 'game' ? '/game' : '/'
-    window.history.pushState({}, '', path)
+  function navigate(next: Route, replace = false) {
+    const path = next === 'game' ? '/game' : next === 'login' ? '/login' : '/'
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', path)
     setRoute(next)
     window.scrollTo({ top: 0, left: 0 })
+  }
+
+  function handleLogin(payload: AuthPayload) {
+    setAuth(payload)
+    if (route !== 'game') navigate('cabinet', true)
   }
 
   async function requestInstall() {
@@ -258,12 +272,19 @@ export default function App() {
   async function handleLogout() {
     await logout().catch(() => undefined)
     window.history.replaceState({}, '', '/')
-    setRoute('cabinet')
+    setRoute('landing')
     setAuth(null)
   }
 
   if (auth === undefined) return <main className="center-state"><div className="loading-mark" /><p>Открываем Lilya…</p></main>
-  if (!auth) return <><LoginScreen onLogin={setAuth} />{bootError && <div className="network-banner" role="status">{bootError}</div>}</>
+  if (!auth) {
+    const needsLogin = route === 'login' || route === 'game'
+    return <>{needsLogin
+      ? <LoginScreen onLogin={handleLogin} onBack={() => navigate('landing')} />
+      : <LandingPage onLogin={() => navigate('login')} />}
+      {bootError && <div className="network-banner" role="status">{bootError}</div>}
+    </>
+  }
 
   return (
     <>
