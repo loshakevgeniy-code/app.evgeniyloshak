@@ -111,7 +111,7 @@ export function LandingPage({ onLogin }: { onLogin: () => void }) {
           <LilyMark />
           <p className="eyebrow">Ближе к главному</p>
           <h2 id="final-title">Разговор, который<br />{' '}хочется сохранить</h2>
-          <p>Ваши ответы остаются между вами — Lilya не просит записывать или загружать их.</p>
+          <p>Запись включаете только вы. Аудио остаётся на вашем устройстве и не отправляется на сервер.</p>
           <button className="button button--primary" type="button" onClick={onLogin}>Войти и начать <span aria-hidden="true">→</span></button>
         </section>
       </main>

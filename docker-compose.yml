@@ -11,7 +11,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      APP_ORIGIN: https://app.evgeniyloshak.ru
+      APP_ORIGIN: https://playlilya.ru
+      APP_ORIGINS: https://playlilya.ru,https://www.playlilya.ru,https://app.evgeniyloshak.ru
       DATABASE_PATH: /data/cabinet.sqlite
       DECK_PATH: /app/private/deck.ru.json
     volumes:

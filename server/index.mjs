@@ -27,6 +27,7 @@ const port = Number(process.env.PORT || 3000)
 const sessionDays = Math.max(1, Number(process.env.SESSION_DAYS || 180))
 const sessionSeconds = sessionDays * 24 * 60 * 60
 const appOrigin = process.env.APP_ORIGIN || `http://127.0.0.1:${port}`
+const appOrigins = new Set((process.env.APP_ORIGINS || appOrigin).split(',').map((origin) => origin.trim()).filter(Boolean))
 const databasePath = process.env.DATABASE_PATH || resolve(here, '../data/cabinet.sqlite')
 const deckPath = process.env.DECK_PATH || resolve(here, '../src/data/deck.ru.json')
 const distPath = resolve(here, '../dist')
@@ -46,9 +47,9 @@ app.use(express.json({ limit: '16kb' }))
 app.use((request, response, next) => {
   response.setHeader('X-Content-Type-Options', 'nosniff')
   response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()')
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(self), geolocation=(), payment=()')
   response.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-  response.setHeader('Content-Security-Policy', "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; manifest-src 'self'")
+  response.setHeader('Content-Security-Policy', "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; media-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; manifest-src 'self'")
   next()
 })
 
@@ -70,7 +71,7 @@ function loginRateLimit(request, response, next) {
 function sameOrigin(request, response, next) {
   const origin = request.get('origin')
   const localOrigin = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin || '')
-  if (origin && origin !== appOrigin && !(localOrigin && !production)) {
+  if (origin && !appOrigins.has(origin) && !(localOrigin && !production)) {
     response.status(403).json({ error: 'Запрос отклонён.' })
     return
   }

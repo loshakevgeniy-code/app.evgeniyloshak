@@ -1,4 +1,4 @@
-export type AppIconName = 'home' | 'products' | 'install' | 'profile' | 'game' | 'deck' | 'rules' | 'settings' | 'pause' | 'finish'
+export type AppIconName = 'home' | 'products' | 'install' | 'profile' | 'game' | 'deck' | 'rules' | 'settings' | 'pause' | 'finish' | 'microphone'
 
 export function AppIcon({ name, className = '' }: { name: AppIconName; className?: string }) {
   return (
@@ -13,6 +13,7 @@ export function AppIcon({ name, className = '' }: { name: AppIconName; className
       {name === 'settings' && <><circle cx="12" cy="12" r="3" /><path d="M12 2.5v2M12 19.5v2M21.5 12h-2M4.5 12h-2M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4M18.7 18.7l-1.4-1.4M6.7 6.7 5.3 5.3" /></>}
       {name === 'pause' && <><path d="M8.5 5v14M15.5 5v14" /></>}
       {name === 'finish' && <><path d="M6 6 18 18M18 6 6 18" /></>}
+      {name === 'microphone' && <><rect x="8" y="2.5" width="8" height="13" rx="4" /><path d="M5 11.5a7 7 0 0 0 14 0M12 18.5v3M8.5 21.5h7" /></>}
     </svg>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CardBack, CardFace, ChapterSymbol, QuestionCardFace } from './components/Cards'
 import { AppIcon } from './components/AppIcon'
+import { AudioRecorder, RecordingsLibrary, type RecordingContext } from './components/AudioRecorder'
 import { LilyMark } from './components/BrandMark'
 import { Modal } from './components/Modal'
 import { cardMatches } from './features/catalog/search'
@@ -50,12 +51,13 @@ function chapterForCard(deck: Deck, card: Card): Chapter | undefined {
   return card.type === 'question' ? deck.chapters.find((chapter) => chapter.id === card.chapterId) : undefined
 }
 
-function GameHeader({ onHome, onRules, onSettings }: { onHome: () => void; onRules: () => void; onSettings: () => void }) {
+function GameHeader({ onHome, onRules, onRecordings, onSettings }: { onHome: () => void; onRules: () => void; onRecordings: () => void; onSettings: () => void }) {
   return (
     <header className="game-header">
       <button className="text-logo" type="button" onClick={onHome}><span>Lilya<br /><small>ближе к главному</small></span><span className="game-mobile-title">Lilya</span></button>
       <nav className="game-desktop-nav" aria-label="Навигация игры">
         <button className="link-button" type="button" onClick={onRules}>Правила</button>
+        <button className="link-button" type="button" onClick={onRecordings}>Мои записи</button>
         <button className="link-button" type="button" onClick={onSettings}>Настройки</button>
       </nav>
       <div className="game-mobile-actions">
@@ -71,20 +73,20 @@ function MobileGameNav({
   onCabinet,
   onHome,
   onCatalog,
-  onSettings,
+  onRecordings,
 }: {
   active: 'game' | 'deck'
   onCabinet: () => void
   onHome: () => void
   onCatalog: () => void
-  onSettings: () => void
+  onRecordings: () => void
 }) {
   return (
     <nav className="mobile-tabbar mobile-game-nav" aria-label="Меню игры">
       <button className="mobile-tabbar__item" type="button" onClick={onCabinet}><AppIcon name="home" /><span>Кабинет</span></button>
       <button className={`mobile-tabbar__item ${active === 'game' ? 'is-active' : ''}`} type="button" onClick={onHome} aria-current={active === 'game' ? 'page' : undefined}><AppIcon name="game" /><span>Игра</span></button>
       <button className={`mobile-tabbar__item ${active === 'deck' ? 'is-active' : ''}`} type="button" onClick={onCatalog} aria-current={active === 'deck' ? 'page' : undefined}><AppIcon name="deck" /><span>Колода</span></button>
-      <button className="mobile-tabbar__item" type="button" onClick={onSettings}><AppIcon name="settings" /><span>Настройки</span></button>
+      <button className="mobile-tabbar__item" type="button" onClick={onRecordings}><AppIcon name="microphone" /><span>Записи</span></button>
     </nav>
   )
 }
@@ -96,6 +98,7 @@ function GameHome({
   onContinue,
   onCatalog,
   onRules,
+  onRecordings,
   onSettings,
   onBack,
 }: {
@@ -105,12 +108,13 @@ function GameHome({
   onContinue: () => void
   onCatalog: () => void
   onRules: () => void
+  onRecordings: () => void
   onSettings: () => void
   onBack: () => void
 }) {
   return (
     <div className="game-shell game-table">
-      <GameHeader onHome={() => undefined} onRules={onRules} onSettings={onSettings} />
+      <GameHeader onHome={() => undefined} onRules={onRules} onRecordings={onRecordings} onSettings={onSettings} />
       <main className="game-home">
         <section className="game-home__copy">
           <p className="eyebrow">Разговор для двоих</p>
@@ -122,7 +126,7 @@ function GameHome({
             <button className="button button--paper" type="button" onClick={onCatalog}>Посмотреть колоду</button>
           </div>
           <p className="game-facts">{deck.cards.length} карточек · {deck.chapters.length} главы · без правильных ответов</p>
-          <p className="privacy-line">История партии остаётся на этом устройстве. Ответы не записываются.</p>
+          <p className="privacy-line">История партии и выбранные аудиозаписи остаются на этом устройстве и не отправляются на сервер.</p>
         </section>
         <div className="hero-deck" aria-hidden="true">
           <div className="hero-deck__brand">
@@ -133,7 +137,7 @@ function GameHome({
         </div>
       </main>
       <button className="back-cabinet" type="button" onClick={onBack}>← Вернуться в Lilya</button>
-      <MobileGameNav active="game" onCabinet={onBack} onHome={() => undefined} onCatalog={onCatalog} onSettings={onSettings} />
+      <MobileGameNav active="game" onCabinet={onBack} onHome={() => undefined} onCatalog={onCatalog} onRecordings={onRecordings} />
     </div>
   )
 }
@@ -181,11 +185,15 @@ function SetupScreen({
           </div>
         </fieldset>
         <fieldset className="choice-group">
-          <legend><span>03</span> Будете снимать разговор?</legend>
-          <div className="choice-grid">
+          <legend><span>03</span> Хотите сохранить разговор?</legend>
+          <div className="choice-grid choice-grid--recording">
             <label className="choice choice--large">
               <input type="radio" name="recording" checked={setup.recordingMode === 'conversation'} onChange={() => setSetup({ ...setup, recordingMode: 'conversation' })} />
               <span><strong>Просто играем</strong><small>Никакой записи не требуется</small></span>
+            </label>
+            <label className="choice choice--large">
+              <input type="radio" name="recording" checked={setup.recordingMode === 'built_in_audio'} onChange={() => setSetup({ ...setup, recordingMode: 'built_in_audio' })} />
+              <span><strong>Записываем звук</strong><small>Встроенным диктофоном Lilya</small></span>
             </label>
             <label className="choice choice--large">
               <input type="radio" name="recording" checked={setup.recordingMode === 'external_camera'} onChange={() => setSetup({ ...setup, recordingMode: 'external_camera' })} />
@@ -201,30 +209,33 @@ function SetupScreen({
 }
 
 function RecordingAgreement({
+  mode,
   checked,
   setChecked,
   onContinue,
   onWithoutRecording,
   onBack,
 }: {
+  mode: Exclude<RecordingMode, 'conversation'>
   checked: boolean[]
   setChecked: (checked: boolean[]) => void
   onContinue: () => void
   onWithoutRecording: () => void
   onBack: () => void
 }) {
+  const isAudio = mode === 'built_in_audio'
   const items = [
-    'Оба участника согласны на съёмку.',
-    'Понятно, где будет храниться запись и кто сможет её увидеть.',
+    `Оба участника согласны на ${isAudio ? 'аудиозапись' : 'съёмку'}.`,
+    `Понятно, где будет храниться ${isAudio ? 'аудиозапись' : 'запись'} и кто сможет её ${isAudio ? 'прослушать' : 'увидеть'}.`,
     'Любой может попросить остановить запись в любой момент.',
   ]
   return (
     <main className="setup-page game-table">
       <div className="setup-wrap setup-wrap--narrow">
         <button className="back-link" type="button" onClick={onBack}>← Назад</button>
-        <p className="eyebrow">Съёмка · отдельная камера</p>
+        <p className="eyebrow">{isAudio ? 'Аудио · на этом устройстве' : 'Съёмка · отдельная камера'}</p>
         <h1>Сначала договоритесь</h1>
-        <p className="setup-intro">Эти отметки — только напоминание для разговора, а не юридическое подтверждение согласия. Они нигде не сохраняются.</p>
+        <p className="setup-intro">Эти отметки — напоминание для разговора, а не юридическое подтверждение согласия. Они нигде не сохраняются.{isAudio ? ' Аудио останется только на этом устройстве.' : ''}</p>
         <div className="check-list">
           {items.map((item, index) => (
             <label className="check-choice" key={item}>
@@ -238,8 +249,8 @@ function RecordingAgreement({
           ))}
         </div>
         <div className="button-stack">
-          <button className="button button--game button--wide" type="button" onClick={onContinue} disabled={!checked.every(Boolean)}>Продолжить со съёмкой</button>
-          <button className="button button--paper button--wide" type="button" onClick={onWithoutRecording}>Продолжить без съёмки</button>
+          <button className="button button--game button--wide" type="button" onClick={onContinue} disabled={!checked.every(Boolean)}>{isAudio ? 'Продолжить с диктофоном' : 'Продолжить со съёмкой'}</button>
+          <button className="button button--paper button--wide" type="button" onClick={onWithoutRecording}>Продолжить без записи</button>
         </div>
       </div>
     </main>
@@ -298,14 +309,14 @@ function Catalog({
   onToggleFavorite,
   onBack,
   onCabinet,
-  onSettings,
+  onRecordings,
 }: {
   deck: Deck
   preferences: Preferences
   onToggleFavorite: (id: string) => void
   onBack: () => void
   onCabinet: () => void
-  onSettings: () => void
+  onRecordings: () => void
 }) {
   const [type, setType] = useState<CatalogType>('all')
   const [chapterId, setChapterId] = useState<string>('all')
@@ -381,7 +392,7 @@ function Catalog({
           </div>
         </Modal>
       )}
-      <MobileGameNav active="deck" onCabinet={onCabinet} onHome={onBack} onCatalog={() => undefined} onSettings={onSettings} />
+      <MobileGameNav active="deck" onCabinet={onCabinet} onHome={onBack} onCatalog={() => undefined} onRecordings={onRecordings} />
     </div>
   )
 }
@@ -413,6 +424,8 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
   const [recordingChecks, setRecordingChecks] = useState([false, false, false])
   const [rulesOpen, setRulesOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [audioModal, setAudioModal] = useState<'record' | 'library' | null>(null)
+  const [recordingContext, setRecordingContext] = useState<RecordingContext | undefined>()
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
   const [helper, setHelper] = useState<{ type: 'followup' | 'special'; selectedId?: string; showAll?: boolean } | null>(null)
@@ -470,10 +483,15 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
 
   function continueSession() {
     if (!session) return
-    if (session.recordingMode === 'external_camera') {
+    if (session.recordingMode !== 'conversation') {
       setRecordingChecks([false, false, false])
       setScreen('recording')
     } else setScreen('game')
+  }
+
+  function openRecorder(context?: RecordingContext) {
+    setRecordingContext(context)
+    setAudioModal('record')
   }
 
   function send(kind: GameCommand['kind'], id?: string) {
@@ -608,11 +626,12 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
         <main className="result-page game-table">
           <section>
             <p className="eyebrow">Разговор завершён</p><h1>{discussed.length ? 'Истории, которые вы обсудили' : 'Иногда достаточно просто начать'}</h1>
-            <p>Приложение не записывало ответы — ниже сохранены только выбранные вопросы.</p>
+            <p>Ниже сохранены выбранные вопросы. Если вы включали диктофон, аудио доступно отдельно в «Моих записях».</p>
             {discussed.length > 0 && <ol className="discussed-list">{discussed.map((card) => <li key={card.id}><span>{card.id}</span><div><strong>{card.title}</strong><p>{card.prompt}</p></div></li>)}</ol>}
             {session.closingViewed && <p className="calm-note">Финальная карточка была открыта.</p>}
             <div className="button-row">
               {discussed.length > 0 && <button className="button button--game" type="button" onClick={() => exportDiscussed(deck, session)}>Скачать список вопросов</button>}
+              <button className="button button--paper" type="button" onClick={() => setAudioModal('library')}>Мои записи</button>
               <button className="button button--paper" type="button" onClick={() => setScreen('home')}>На главный экран</button>
               <button className="button button--paper" type="button" onClick={startSetup}>Новая партия</button>
             </div>
@@ -677,8 +696,10 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
           {session.phase === 'story' && activeCard && (
             <section className="single-card-stage">
               {session.recordingMode === 'external_camera' && <p className="recording-badge">Съёмка: отдельная камера</p>}
+              {session.recordingMode === 'built_in_audio' && <p className="recording-badge">Диктофон готов · запись включаете вы</p>}
               <QuestionCardFace card={activeCard} chapter={currentChapter} />
               {detailOpen && <p className="detail-panel">{activeCard.detailPrompt}</p>}
+              <button className="voice-record-cta" type="button" onClick={() => openRecorder({ cardId: activeCard.id, title: activeCard.title, prompt: activeCard.prompt })}><span><AppIcon name="microphone" /></span><span><strong>Записать этот разговор</strong><small>Сохранится только на устройстве</small></span></button>
               <div className="story-tools">
                 <button className="tool-button" type="button" onClick={() => setDetailOpen((value) => !value)}>{detailOpen ? 'Скрыть подсказку' : 'Помочь начать рассказ'}</button>
                 <button className="tool-button" type="button" onClick={() => setHelper({ type: 'followup' })}>Уточнить</button>
@@ -697,10 +718,10 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
 
   return (
     <div className={`game-root ${preferences.largeText ? 'is-large-text' : ''} ${preferences.reduceMotion ? 'is-reduced-motion' : ''}`}>
-      {screen === 'home' && <GameHome deck={deck} hasActiveSession={Boolean(session && session.phase !== 'finished')} onStart={startSetup} onContinue={continueSession} onCatalog={() => setScreen('catalog')} onRules={() => setRulesOpen(true)} onSettings={() => setSettingsOpen(true)} onBack={onBackToCabinet} />}
-      {screen === 'setup' && <SetupScreen setup={setup} setSetup={setSetup} onContinue={() => setup.recordingMode === 'external_camera' ? setScreen('recording') : createSession('conversation')} onBack={() => setScreen('home')} />}
-      {screen === 'recording' && <RecordingAgreement checked={recordingChecks} setChecked={setRecordingChecks} onContinue={() => session ? setScreen('game') : createSession('external_camera')} onWithoutRecording={() => session ? (setSession({ ...session, recordingMode: 'conversation' }), setScreen('game')) : createSession('conversation')} onBack={() => session ? setScreen('home') : setScreen('setup')} />}
-      {screen === 'catalog' && <Catalog deck={deck} preferences={preferences} onToggleFavorite={toggleFavorite} onBack={() => setScreen('home')} onCabinet={onBackToCabinet} onSettings={() => setSettingsOpen(true)} />}
+      {screen === 'home' && <GameHome deck={deck} hasActiveSession={Boolean(session && session.phase !== 'finished')} onStart={startSetup} onContinue={continueSession} onCatalog={() => setScreen('catalog')} onRules={() => setRulesOpen(true)} onRecordings={() => setAudioModal('library')} onSettings={() => setSettingsOpen(true)} onBack={onBackToCabinet} />}
+      {screen === 'setup' && <SetupScreen setup={setup} setSetup={setSetup} onContinue={() => setup.recordingMode === 'conversation' ? createSession('conversation') : setScreen('recording')} onBack={() => setScreen('home')} />}
+      {screen === 'recording' && <RecordingAgreement mode={(session?.recordingMode === 'built_in_audio' || session?.recordingMode === 'external_camera') ? session.recordingMode : setup.recordingMode as Exclude<RecordingMode, 'conversation'>} checked={recordingChecks} setChecked={setRecordingChecks} onContinue={() => session ? setScreen('game') : createSession(setup.recordingMode)} onWithoutRecording={() => session ? (setSession({ ...session, recordingMode: 'conversation' }), setScreen('game')) : createSession('conversation')} onBack={() => session ? setScreen('home') : setScreen('setup')} />}
+      {screen === 'catalog' && <Catalog deck={deck} preferences={preferences} onToggleFavorite={toggleFavorite} onBack={() => setScreen('home')} onCabinet={onBackToCabinet} onRecordings={() => setAudioModal('library')} />}
       {screen === 'game' && renderPlay()}
       {!storage.available && <div className="network-banner" role="status">Не удалось сохранить данные в браузере. Игра работает, но после закрытия вкладки ход партии может потеряться.</div>}
       {storageMessage && <div className="toast" role="status"><span>{storageMessage}</span><button type="button" onClick={() => setStorageMessage('')} aria-label="Закрыть сообщение">×</button></div>}
@@ -711,11 +732,30 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
           <div className="settings-list">
             <label className="toggle-row"><span><strong>Крупный текст</strong><small>Увеличить вопросы и элементы управления</small></span><input type="checkbox" checked={preferences.largeText} onChange={(event) => setPreferences({ ...preferences, largeText: event.target.checked })} /></label>
             <label className="toggle-row"><span><strong>Уменьшить анимацию</strong><small>Убрать перевороты и движения карточек</small></span><input type="checkbox" checked={preferences.reduceMotion} onChange={(event) => setPreferences({ ...preferences, reduceMotion: event.target.checked })} /></label>
-            <section className="data-note"><p className="eyebrow">О данных</p><p>На устройстве сохраняются ход партии, настройки и ID избранных карточек. Ответы, имена, аудио и видео приложение не хранит. Технические журналы сервера могут содержать время входа и сетевой адрес.</p></section>
+            <section className="data-note"><p className="eyebrow">О данных</p><p>На устройстве сохраняются ход партии, настройки, избранные карточки и аудио, которое вы записали сами. Записи не отправляются на сервер. Технические журналы могут содержать время входа и сетевой адрес.</p></section>
+            <button className="button button--paper button--wide" type="button" onClick={() => { setSettingsOpen(false); setAudioModal('library') }}>Открыть мои записи</button>
             {!deleteConfirm
               ? <button className="danger-link" type="button" onClick={() => setDeleteConfirm(true)}>Удалить данные игры</button>
               : <div className="delete-confirm"><p>Удалить текущую партию, настройки и избранное на этом устройстве?</p><div className="button-row"><button className="button button--danger" type="button" onClick={removeData}>Да, удалить</button><button className="button button--paper" type="button" onClick={() => setDeleteConfirm(false)}>Отмена</button></div></div>}
           </div>
+        </Modal>
+      )}
+      {audioModal === 'record' && (
+        <Modal title="Диктофон Lilya" eyebrow="Запись на этом устройстве" onClose={() => setAudioModal(null)}>
+          <AudioRecorder
+            context={recordingContext}
+            consentRequired={session?.recordingMode !== 'built_in_audio'}
+            onSaved={() => setStorageMessage('Аудиозапись сохранена на этом устройстве.')}
+            onOpenLibrary={() => setAudioModal('library')}
+          />
+        </Modal>
+      )}
+      {audioModal === 'library' && (
+        <Modal title="Мои записи" eyebrow="Только на этом устройстве" wide onClose={() => setAudioModal(null)}>
+          <RecordingsLibrary
+            onNewRecording={() => { setRecordingContext(undefined); setAudioModal('record') }}
+            onChanged={() => setStorageMessage('Список аудиозаписей обновлён.')}
+          />
         </Modal>
       )}
       {helperModal()}

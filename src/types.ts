@@ -64,7 +64,7 @@ export interface Deck {
 }
 
 export type HeroRole = 'close_person' | 'mother' | 'father' | 'sister' | 'brother' | 'partner' | 'friend'
-export type RecordingMode = 'conversation' | 'external_camera'
+export type RecordingMode = 'conversation' | 'built_in_audio' | 'external_camera'
 export type GameSize = 4 | 8
 export type GamePhase =
   | 'rules'

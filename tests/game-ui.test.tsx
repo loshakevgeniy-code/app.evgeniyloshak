@@ -72,4 +72,15 @@ describe('основной игровой сценарий', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Закончить без карточки' }))
     expect(screen.getAllByRole('listitem')).toHaveLength(8)
   })
+
+  it('предлагает встроенный диктофон только после согласия участников', () => {
+    render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Начать игру' }))
+    fireEvent.click(screen.getByRole('radio', { name: /Записываем звук/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Продолжить/ }))
+
+    expect(screen.getByRole('heading', { name: 'Сначала договоритесь' })).toBeInTheDocument()
+    expect(screen.getByText('Аудио · на этом устройстве')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Продолжить с диктофоном' })).toBeDisabled()
+  })
 })
