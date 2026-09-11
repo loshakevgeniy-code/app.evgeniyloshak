@@ -25,11 +25,11 @@
 }
 
 * { box-sizing: border-box; }
-html { min-width: 320px; background: #fff; }
-body { min-width: 320px; min-height: 100vh; min-height: 100dvh; margin: 0; }
+html { min-width: 320px; background: #fff; color-scheme: light; }
+body { min-width: 320px; min-height: 100vh; min-height: 100dvh; margin: 0; overscroll-behavior-y: none; }
 button, input { font: inherit; }
 button, a, input { -webkit-tap-highlight-color: transparent; }
-button { color: inherit; cursor: pointer; }
+button { color: inherit; cursor: pointer; touch-action: manipulation; }
 button:disabled { cursor: not-allowed; opacity: .45; }
 button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
 h1, h2, h3, p { margin-top: 0; }
@@ -65,6 +65,8 @@ h1, h2, h3, p { margin-top: 0; }
 .dot { width: 8px; height: 8px; display: inline-block; border-radius: 50%; margin-right: 7px; }
 .dot--purple { background: var(--purple); }
 .dot--lime { background: var(--lime); box-shadow: 0 0 0 1px rgba(42,42,42,.18); }
+.app-icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.mobile-tabbar, .cabinet-mobile-status, .game-mobile-actions, .game-mobile-title, .play-mobile-icon { display: none; }
 
 /* Brand shell */
 .brand-lockup { display: inline-flex; align-items: center; gap: 13px; font-weight: 800; font-size: 17px; white-space: nowrap; }
@@ -125,6 +127,10 @@ h1, h2, h3, p { margin-top: 0; }
 .mini-card--blue { background: var(--chapter-turns); transform: translate(-16%, -50%) rotate(15deg); }
 .mini-card--paper { align-items: center; background: var(--paper); color: var(--game-ink); transform: translate(-50%, -46%) rotate(-2deg); }
 .mini-card--paper span { margin: auto; color: var(--game-brand); font-family: var(--serif); font-size: 100px; }
+.profile-sheet { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; padding: 18px; border-radius: 16px; background: var(--paper); }
+.profile-sheet > div:last-child { min-width: 0; }
+.profile-sheet p { margin: 5px 0 0; color: var(--game-muted); overflow-wrap: anywhere; }
+.profile-avatar { width: 58px; height: 58px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 18px; background: var(--lime); font-size: 24px; font-weight: 800; }
 
 /* Game */
 .game-root { min-height: 100vh; min-height: 100dvh; color: var(--game-ink); background: var(--table); }
@@ -348,77 +354,230 @@ h1, h2, h3, p { margin-top: 0; }
 }
 
 @media (max-width: 720px) {
-  .cabinet-header, .game-header, .play-topbar { min-height: 76px; }
-  .cabinet-header { align-items: flex-start; }
-  .cabinet-header nav { flex-wrap: wrap; justify-content: flex-end; }
-  .cabinet-header .button--ghost, .cabinet-user { display: none; }
-  .products-section { margin-top: 64px; }
-  .product-card__copy { min-height: 450px; }
-  .game-header nav { gap: 0; }
-  .game-home { padding-top: 34px; }
-  .hero-deck { min-height: 385px; }
+  html { background: var(--site-soft); }
+  body { background: var(--site-soft); }
+  .button { min-height: 52px; padding-inline: 18px; font-size: 15px; }
+  .mobile-tabbar {
+    position: fixed;
+    z-index: 30;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(68px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 7px 8px max(7px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--site-line);
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 -12px 30px rgba(42,42,42,.06);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+  .mobile-tabbar__item { min-width: 0; min-height: 52px; display: grid; place-items: center; align-content: center; gap: 3px; padding: 2px; border: 0; border-radius: 14px; background: transparent; color: var(--site-muted); font-size: 11px; font-weight: 700; line-height: 1; }
+  .mobile-tabbar__item .app-icon { width: 23px; height: 23px; transition: transform .18s ease, background-color .18s ease; }
+  .mobile-tabbar__item.is-active { color: var(--purple); }
+  .mobile-tabbar__item.is-active .app-icon { width: 34px; height: 28px; padding: 5px 8px; border-radius: 999px; background: var(--lime); color: var(--site-ink); }
+
+  /* Mobile cabinet shell */
+  .cabinet-page { min-height: 100dvh; padding-bottom: calc(78px + env(safe-area-inset-bottom)); background: var(--site-soft); }
+  .cabinet-header {
+    position: sticky;
+    z-index: 15;
+    top: 0;
+    min-height: calc(62px + env(safe-area-inset-top));
+    padding: max(10px, env(safe-area-inset-top)) 16px 10px;
+    background: rgba(246,246,243,.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .cabinet-header .brand-mark { width: 31px; height: 31px; }
+  .cabinet-header .brand-lockup { font-size: 14px; }
+  .cabinet-desktop-nav { display: none !important; }
+  .cabinet-mobile-status { display: inline-flex; align-items: center; gap: 7px; margin: 0; color: var(--site-muted); font-size: 12px; font-weight: 750; text-transform: uppercase; }
+  .status-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1px rgba(42,42,42,.18); }
+  .cabinet-main { width: 100%; padding: 24px 16px 28px; }
+  .cabinet-intro { max-width: none; }
+  .cabinet-intro .eyebrow { display: none; }
+  .cabinet-intro h1 { margin: 0 0 12px; font-size: clamp(34px, 10vw, 44px); line-height: .98; letter-spacing: -.055em; }
+  .cabinet-intro > p:last-child { max-width: 420px; margin-bottom: 0; font-size: 16px; line-height: 1.45; }
+  .products-section { margin-top: 34px; scroll-margin-top: 76px; }
+  .section-title-row { padding-top: 15px; }
+  .section-title-row .eyebrow { margin-bottom: 0; font-size: 11px; }
+  .section-title-row span { font-size: 12px; }
+  .products-section h2 { margin: 15px 0 18px; font-size: 28px; letter-spacing: -.045em; }
+  .product-card { min-height: 0; display: flex; flex-direction: column; border-radius: 24px; box-shadow: 0 18px 45px rgba(42,42,42,.14); }
+  .product-card__art { order: -1; min-height: 220px; }
+  .product-card__copy { min-height: 0; padding: 24px 22px 26px; }
+  .product-card__status { margin-bottom: 18px; font-size: 11px; }
+  .product-card__copy h3 { margin: 0 0 14px; font-size: 38px; }
+  .product-card__copy > p:not(.product-card__status) { margin-bottom: 20px; font-size: 15px; line-height: 1.5; }
+  .product-card__copy .button { width: 100%; }
+  .mini-card { width: min(38%, 150px); padding: 15px; border-radius: 15px; }
+  .mini-card--paper span { font-size: 70px; }
+
+  /* Mobile game chrome */
+  .game-root, .game-table { min-height: 100dvh; }
+  .game-shell { min-height: 100dvh; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .game-header {
+    position: sticky;
+    z-index: 15;
+    top: 0;
+    min-height: calc(62px + env(safe-area-inset-top));
+    padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+    background: rgba(246,246,243,.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .game-header .text-logo { min-width: 72px; font-family: inherit; font-size: 17px; font-weight: 800; text-decoration: none; }
+  .game-header .text-logo > span:first-child { display: none; }
+  .game-mobile-title { display: inline; }
+  .game-desktop-nav { display: none !important; }
+  .game-mobile-actions { display: flex; gap: 8px; }
+  .app-icon-button { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--game-line); border-radius: 14px; background: rgba(255,255,255,.78); }
+  .back-cabinet { display: none; }
+  .game-home { width: 100%; display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 24px; }
+  .game-home__copy { width: 100%; }
+  .game-home__copy h1 { margin: 10px 0 12px; font-size: clamp(42px, 13vw, 58px); }
+  .game-lead { margin-bottom: 18px; font-size: 16px; line-height: 1.45; }
+  .game-home .button-row { display: grid; gap: 9px; }
+  .game-home .button { width: 100%; }
+  .game-home .button-row .button:last-child { display: none; }
+  .game-facts { margin: 18px 0 6px; font-size: 13px; }
+  .privacy-line { margin-bottom: 0; font-size: 12px; }
+  .hero-deck { order: -1; width: 100%; min-height: 235px; overflow: hidden; border-radius: 22px; background: var(--site-ink); }
+  .hero-deck__card { width: min(43%, 165px); border-radius: 15px; }
+  .hero-deck__card--paper { padding: 15px; }
+  .hero-deck__card--paper p { font-size: 10px; }
+  .hero-deck__card--paper strong { font-size: 18px; }
+
+  /* Mobile setup and active play */
   .choice-grid--roles, .choice-grid { grid-template-columns: 1fr; }
-  .play-topbar { flex-wrap: wrap; }
-  .play-progress { order: 3; width: 100%; grid-template-columns: auto 1fr; justify-items: start; gap: 12px; }
-  .play-actions { margin-left: auto; }
-  .play-actions .link-button { font-size: 13px; }
+  .setup-page { padding: max(18px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom)); }
+  .setup-wrap > h1 { margin: 12px 0; font-size: 38px; line-height: 1; }
+  .setup-intro { margin-bottom: 28px; font-size: 15px; }
+  .choice-group { margin-bottom: 26px; padding-top: 18px; }
+  .choice-group legend { margin-bottom: 14px; font-size: 21px; }
+  .choice { min-height: 60px; border-radius: 16px; background: rgba(255,255,255,.76); }
+  .choice--large { min-height: 82px; }
+  .setup-wrap > .button--wide { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 8; box-shadow: 0 12px 35px rgba(42,42,42,.2); }
+  .play-topbar {
+    position: sticky;
+    z-index: 15;
+    top: 0;
+    min-height: calc(62px + env(safe-area-inset-top));
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 98px;
+    padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+    background: rgba(246,246,243,.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .play-topbar .text-logo { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--game-line); border-radius: 14px; background: rgba(255,255,255,.8); }
+  .play-topbar .text-logo > span { display: none; }
+  .play-mobile-icon { display: block; }
+  .play-progress { width: auto; display: grid; order: initial; justify-items: center; gap: 2px; font-size: 11px; }
+  .play-progress strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .play-actions { display: grid; grid-template-columns: repeat(2, 44px); gap: 6px; margin: 0; }
+  .play-actions .link-button { width: 44px; height: 44px; display: grid; place-items: center; min-height: 44px; padding: 0; border: 1px solid var(--game-line); border-radius: 14px; background: rgba(255,255,255,.8); text-decoration: none; }
+  .play-actions .link-button span { display: none; }
+  .play-main { width: 100%; padding: 18px 12px max(34px, env(safe-area-inset-bottom)); }
   .chapter-screen { grid-template-columns: 1fr; max-width: 460px; }
-  .chapter-card { width: 100%; min-height: 500px; }
-  .pair-cards, .pair-cards--closed { grid-template-columns: minmax(0, 440px); }
-  .pair-cards--closed .pair-option:last-child { margin-top: 8px; transform: rotate(2deg); }
-  .pair-cards--closed .pair-option:first-child { transform: rotate(-2deg); }
+  .chapter-card { width: min(100%, 390px); min-height: min(62svh, 480px); padding: 26px; border-radius: 24px; }
+  .chapter-actions { width: 100%; }
+  .pair-screen { gap: 16px; overflow: hidden; text-align: left; }
+  .pair-screen > div:first-child { width: 100%; padding-inline: 4px; }
+  .pair-screen h1 { margin: 5px 0 8px; font-size: 31px; line-height: 1; }
+  .pair-screen > div:first-child > p:not(.eyebrow) { margin-bottom: 0; font-size: 14px; line-height: 1.4; }
+  .pair-cards, .pair-cards--closed {
+    width: calc(100% + 24px);
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(82vw, 365px);
+    justify-content: start;
+    gap: 14px;
+    margin-inline: -12px;
+    padding: 6px 18px 18px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .pair-cards::-webkit-scrollbar { display: none; }
+  .pair-option { scroll-snap-align: center; }
+  .pair-cards--closed .pair-option:first-child, .pair-cards--closed .pair-option:last-child { margin: 0; transform: none; }
+  .flip-card { min-height: min(58svh, 430px); }
   .mobile-note { display: block; font-size: 13px; }
-  .game-card { min-height: 500px; padding: 24px; }
+  .game-card { min-height: min(58svh, 430px); padding: 24px; border-radius: 24px; }
   .game-card--face::before { left: 24px; right: 24px; }
-  .story-tools { grid-template-columns: 1fr; }
+  .single-card-stage { width: 100%; gap: 12px; }
+  .single-card-stage .game-card { width: min(100%, 390px); }
+  .story-tools { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .tool-button { min-height: 58px; padding: 8px 5px; font-size: 12px; line-height: 1.25; }
   .story-complete { grid-template-columns: 1fr; }
-  .catalog-grid { grid-template-columns: 1fr; }
-  .catalog-open .game-card { min-height: 390px; aspect-ratio: auto; }
+  .guess-panel, .detail-panel { padding: 17px; }
+
+  /* Mobile deck */
+  .catalog-page { min-height: 100dvh; padding: max(16px, env(safe-area-inset-top)) 14px calc(88px + env(safe-area-inset-bottom)); }
+  .catalog-header { margin-bottom: 22px; }
+  .catalog-header .back-link { min-height: 44px; padding-left: 0; }
+  .catalog-header h1 { margin: 8px 0 8px; font-size: 40px; }
+  .catalog-header > p:not(.eyebrow) { margin-bottom: 0; font-size: 14px; line-height: 1.45; }
+  .search-field input { width: 100%; min-height: 54px; border-radius: 16px; }
+  .filter-row { flex-wrap: nowrap; width: calc(100% + 28px); margin-inline: -14px; padding-inline: 14px; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-pill { flex: 0 0 auto; }
+  .catalog-grid { grid-template-columns: 1fr; gap: 14px; }
+  .catalog-open .game-card { min-height: 330px; aspect-ratio: auto; }
   .card-viewer, .helper-selected { grid-template-columns: 1fr; }
   .card-viewer > .game-card, .helper-selected > .game-card { max-width: 440px; margin: 0 auto; }
   .helper-grid { grid-template-columns: 1fr; }
   .viewer-nav { grid-template-columns: 1fr 1fr; }
   .viewer-nav span { grid-column: 1 / -1; grid-row: 1; text-align: center; }
   .viewer-nav .button { grid-row: 2; }
+
+  /* Native-style sheets and feedback */
+  .modal { width: 100%; max-height: min(92dvh, 820px); margin: auto 0 0; border-width: 1px 0 0; border-radius: 26px 26px 0 0; }
+  .modal--wide { width: 100%; }
+  .modal__sheet { max-height: min(92dvh, 820px); padding-bottom: env(safe-area-inset-bottom); }
+  .modal__header { padding: 17px 18px 13px; }
+  .modal__body { padding: 20px 18px; }
+  .modal__header h2 { font-size: 30px; }
+  .network-banner, .sync-banner, .toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
 }
 
 @media (max-width: 480px) {
-  .button { padding-inline: 16px; font-size: 14px; }
   .auth-page { padding: 0; }
-  .auth-panel { min-height: 100dvh; padding: 24px 20px 38px; }
-  .auth-copy { margin: 80px 0 28px; }
-  .auth-copy h1 { font-size: 50px; }
+  .auth-panel { min-height: 100dvh; padding: max(22px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom)); background: #fff; }
+  .auth-copy { margin: auto 0 24px; padding-top: 34px; }
+  .auth-copy h1 { margin: 12px 0 14px; font-size: 40px; line-height: .98; }
+  .auth-copy > p:last-child { font-size: 15px; line-height: 1.5; }
+  .auth-form { gap: 14px; }
+  .auth-form input { min-height: 56px; border-radius: 16px; font-size: 16px; }
+  .auth-form .button { min-height: 56px; }
+  .auth-note { margin-top: 18px; font-size: 12px; }
   .auth-visual { display: none; }
   .brand-lockup { font-size: 15px; }
-  .cabinet-main { padding-top: 58px; }
-  .cabinet-intro h1 { font-size: 51px; }
-  .product-card { border-radius: 20px; }
-  .product-card__copy h3 { font-size: 48px; }
-  .product-card__art { min-height: 320px; }
-  .section-title-row { align-items: flex-start; }
-  .game-header .link-button { padding-inline: 6px; font-size: 13px; }
-  .game-home__copy h1 { font-size: 57px; }
-  .game-lead { font-size: 17px; }
-  .game-home .button-row { display: grid; }
-  .hero-deck { min-height: 340px; }
-  .hero-deck__card { width: 63%; border-radius: 18px; }
-  .hero-deck__card--paper { padding: 22px; }
-  .setup-page { padding: 28px 16px 50px; }
-  .setup-wrap > h1 { font-size: 49px; }
-  .choice-group legend { font-size: 22px; }
-  .play-main { padding-inline: 14px; }
-  .play-actions .link-button:last-child { max-width: 94px; line-height: 1.2; }
-  .chapter-card { min-height: 440px; padding: 28px; }
-  .game-card { min-height: 470px; aspect-ratio: auto; }
-  .game-card--small { min-height: 430px; }
-  .card-prompt { font-size: 28px; }
-  .pair-screen h1 { font-size: 42px; }
+  .game-card, .game-card--small { min-height: min(58svh, 430px); aspect-ratio: 3/4; }
+  .card-prompt { font-size: clamp(25px, 8vw, 31px); }
   .guess-panel .button-row, .closing-screen .button-row, .result-page .button-row { display: grid; width: 100%; }
-  .modal { width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 18px; }
-  .modal__sheet { max-height: calc(100dvh - 18px); }
-  .modal__header, .modal__body { padding-inline: 17px; }
-  .modal__header h2 { font-size: 28px; }
-  .sync-banner { display: grid; left: 10px; right: 10px; bottom: 10px; }
+  .closing-screen h1, .standalone-rules h1, .result-page h1, .pause-card h1 { font-size: 40px; }
+  .sync-banner { display: grid; left: 10px; right: 10px; }
+}
+
+@media (max-width: 720px) and (max-height: 700px) {
+  .game-home { gap: 6px; padding-top: 12px; }
+  .hero-deck { min-height: 175px; }
+  .hero-deck__card { width: min(38%, 125px); }
+  .hero-deck__card--paper { padding: 12px; }
+  .hero-deck__card--paper strong { font-size: 15px; }
+  .game-home__copy h1 { margin: 6px 0 8px; font-size: 40px; }
+  .game-lead { margin-bottom: 12px; font-size: 15px; line-height: 1.35; }
+}
+
+@media (display-mode: standalone) and (max-width: 720px) {
+  .cabinet-header, .game-header, .play-topbar { -webkit-user-select: none; user-select: none; }
+  .cabinet-page, .game-root { min-height: 100dvh; }
 }
 
 @media (prefers-reduced-motion: reduce) {

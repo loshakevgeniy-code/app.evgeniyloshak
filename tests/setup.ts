@@ -4,6 +4,9 @@ import { cleanup } from '@testing-library/react'
 
 afterEach(() => cleanup())
 
+window.scrollTo = () => undefined
+HTMLElement.prototype.scrollIntoView = () => undefined
+
 if (!HTMLDialogElement.prototype.showModal) {
   HTMLDialogElement.prototype.showModal = function showModal() { this.open = true }
 }

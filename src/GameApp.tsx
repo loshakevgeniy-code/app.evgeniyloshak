@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CardBack, CardFace, ChapterSymbol, QuestionCardFace } from './components/Cards'
+import { AppIcon } from './components/AppIcon'
 import { Modal } from './components/Modal'
 import { cardMatches } from './features/catalog/search'
 import { createGameSession, gameReducer, makeViewKey, type GameCommand } from './features/game/engine'
@@ -51,12 +52,39 @@ function chapterForCard(deck: Deck, card: Card): Chapter | undefined {
 function GameHeader({ onHome, onRules, onSettings }: { onHome: () => void; onRules: () => void; onSettings: () => void }) {
   return (
     <header className="game-header">
-      <button className="text-logo" type="button" onClick={onHome}>Кажется,<br />я тебя знаю</button>
-      <nav aria-label="Навигация игры">
+      <button className="text-logo" type="button" onClick={onHome}><span>Кажется,<br />я тебя знаю</span><span className="game-mobile-title">Игра</span></button>
+      <nav className="game-desktop-nav" aria-label="Навигация игры">
         <button className="link-button" type="button" onClick={onRules}>Правила</button>
         <button className="link-button" type="button" onClick={onSettings}>Настройки</button>
       </nav>
+      <div className="game-mobile-actions">
+        <button className="app-icon-button" type="button" onClick={onRules} aria-label="Правила"><AppIcon name="rules" /></button>
+        <button className="app-icon-button" type="button" onClick={onSettings} aria-label="Настройки"><AppIcon name="settings" /></button>
+      </div>
     </header>
+  )
+}
+
+function MobileGameNav({
+  active,
+  onCabinet,
+  onHome,
+  onCatalog,
+  onSettings,
+}: {
+  active: 'game' | 'deck'
+  onCabinet: () => void
+  onHome: () => void
+  onCatalog: () => void
+  onSettings: () => void
+}) {
+  return (
+    <nav className="mobile-tabbar mobile-game-nav" aria-label="Меню игры">
+      <button className="mobile-tabbar__item" type="button" onClick={onCabinet}><AppIcon name="home" /><span>Кабинет</span></button>
+      <button className={`mobile-tabbar__item ${active === 'game' ? 'is-active' : ''}`} type="button" onClick={onHome} aria-current={active === 'game' ? 'page' : undefined}><AppIcon name="game" /><span>Игра</span></button>
+      <button className={`mobile-tabbar__item ${active === 'deck' ? 'is-active' : ''}`} type="button" onClick={onCatalog} aria-current={active === 'deck' ? 'page' : undefined}><AppIcon name="deck" /><span>Колода</span></button>
+      <button className="mobile-tabbar__item" type="button" onClick={onSettings}><AppIcon name="settings" /><span>Настройки</span></button>
+    </nav>
   )
 }
 
@@ -106,6 +134,7 @@ function GameHome({
         </div>
       </main>
       <button className="back-cabinet" type="button" onClick={onBack}>← Вернуться в личный кабинет</button>
+      <MobileGameNav active="game" onCabinet={onBack} onHome={() => undefined} onCatalog={onCatalog} onSettings={onSettings} />
     </div>
   )
 }
@@ -237,11 +266,11 @@ function GameTopBar({ session, deck, onPause, onFinish, onRules }: { session: Ga
   const chapter = deck.chapters[Math.min(session.currentChapterIndex, deck.chapters.length - 1)]
   return (
     <header className="play-topbar">
-      <button className="text-logo text-logo--small" type="button" onClick={onRules}>Кажется, я тебя знаю</button>
+      <button className="text-logo text-logo--small" type="button" onClick={onRules} aria-label="Правила"><span>Кажется, я тебя знаю</span><AppIcon name="rules" className="play-mobile-icon" /></button>
       <div className="play-progress"><span>{chapter?.number} / 04</span><strong>{discussed} из {session.gameSize} вопросов</strong></div>
       <div className="play-actions">
-        <button className="link-button" type="button" onClick={onPause}>Пауза</button>
-        <button className="link-button" type="button" onClick={onFinish}>Закончить разговор</button>
+        <button className="link-button" type="button" onClick={onPause} aria-label="Пауза"><AppIcon name="pause" className="play-mobile-icon" /><span>Пауза</span></button>
+        <button className="link-button" type="button" onClick={onFinish} aria-label="Закончить разговор"><AppIcon name="finish" className="play-mobile-icon" /><span>Закончить разговор</span></button>
       </div>
     </header>
   )
@@ -269,11 +298,15 @@ function Catalog({
   preferences,
   onToggleFavorite,
   onBack,
+  onCabinet,
+  onSettings,
 }: {
   deck: Deck
   preferences: Preferences
   onToggleFavorite: (id: string) => void
   onBack: () => void
+  onCabinet: () => void
+  onSettings: () => void
 }) {
   const [type, setType] = useState<CatalogType>('all')
   const [chapterId, setChapterId] = useState<string>('all')
@@ -342,6 +375,7 @@ function Catalog({
           </div>
         </Modal>
       )}
+      <MobileGameNav active="deck" onCabinet={onCabinet} onHome={onBack} onCatalog={() => undefined} onSettings={onSettings} />
     </div>
   )
 }
@@ -404,6 +438,10 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
     setDetailOpen(false)
     setHelper(null)
   }, [session?.activeQuestionId, session?.phase])
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 })
+  }, [screen, session?.phase, session?.currentChapterIndex])
 
   const pairKey = session?.candidates.join('|') || ''
   useEffect(() => {
@@ -656,7 +694,7 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
       {screen === 'home' && <GameHome deck={deck} hasActiveSession={Boolean(session && session.phase !== 'finished')} onStart={startSetup} onContinue={continueSession} onCatalog={() => setScreen('catalog')} onRules={() => setRulesOpen(true)} onSettings={() => setSettingsOpen(true)} onBack={onBackToCabinet} />}
       {screen === 'setup' && <SetupScreen setup={setup} setSetup={setSetup} onContinue={() => setup.recordingMode === 'external_camera' ? setScreen('recording') : createSession('conversation')} onBack={() => setScreen('home')} />}
       {screen === 'recording' && <RecordingAgreement checked={recordingChecks} setChecked={setRecordingChecks} onContinue={() => session ? setScreen('game') : createSession('external_camera')} onWithoutRecording={() => session ? (setSession({ ...session, recordingMode: 'conversation' }), setScreen('game')) : createSession('conversation')} onBack={() => session ? setScreen('home') : setScreen('setup')} />}
-      {screen === 'catalog' && <Catalog deck={deck} preferences={preferences} onToggleFavorite={toggleFavorite} onBack={() => setScreen('home')} />}
+      {screen === 'catalog' && <Catalog deck={deck} preferences={preferences} onToggleFavorite={toggleFavorite} onBack={() => setScreen('home')} onCabinet={onBackToCabinet} onSettings={() => setSettingsOpen(true)} />}
       {screen === 'game' && renderPlay()}
       {!storage.available && <div className="network-banner" role="status">Не удалось сохранить данные в браузере. Игра работает, но после закрытия вкладки ход партии может потеряться.</div>}
       {storageMessage && <div className="toast" role="status"><span>{storageMessage}</span><button type="button" onClick={() => setStorageMessage('')} aria-label="Закрыть сообщение">×</button></div>}

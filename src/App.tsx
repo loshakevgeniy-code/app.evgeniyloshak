@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { getDeck, getMe, login, logout, type AuthPayload } from './api'
 import { BrandMark } from './components/BrandMark'
+import { AppIcon } from './components/AppIcon'
 import { Modal } from './components/Modal'
 import { GameApp } from './GameApp'
 import { validateDeck } from './data/validateDeck'
@@ -89,23 +90,35 @@ function Cabinet({
   onInstall: () => void
 }) {
   const gameAccess = auth.products.some((product) => product.slug === 'know-you' && product.status === 'active')
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'home' | 'products' | 'profile'>('home')
+
+  function scrollTo(id?: string) {
+    if (!id) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="cabinet-page">
       <header className="cabinet-header">
-        <BrandMark />
-        <nav aria-label="Навигация кабинета">
+        <BrandMark compact />
+        <nav className="cabinet-desktop-nav" aria-label="Навигация кабинета">
           <button className="button button--ghost" type="button" onClick={onInstall}>Установить приложение</button>
           <span className="cabinet-user">{auth.user.displayName}</span>
           <button className="round-button" type="button" onClick={onLogout} aria-label="Выйти из кабинета">↪</button>
         </nav>
+        <p className="cabinet-mobile-status"><span className="status-pulse" /> Кабинет</p>
       </header>
-      <main className="cabinet-main">
+      <main className="cabinet-main" id="cabinet-home">
         <div className="cabinet-intro">
           <p className="eyebrow"><span className="dot dot--purple" /> Личный кабинет</p>
           <h1>Добро пожаловать,<br />{auth.user.displayName}</h1>
           <p>Здесь будут собраны ваши игры, воркбуки и другие материалы.</p>
         </div>
-        <section className="products-section" aria-labelledby="products-title">
+        <section className="products-section" id="cabinet-products" aria-labelledby="products-title">
           <div className="section-title-row">
             <p className="eyebrow">01 / Мои продукты</p>
             <span>{auth.products.length} доступен</span>
@@ -128,6 +141,29 @@ function Cabinet({
           </article>
         </section>
       </main>
+      <nav className="mobile-tabbar" aria-label="Основное меню">
+        <button className={`mobile-tabbar__item ${activeTab === 'home' ? 'is-active' : ''}`} type="button" onClick={() => { setActiveTab('home'); scrollTo() }} aria-label="Главная" aria-current={activeTab === 'home' ? 'page' : undefined}>
+          <AppIcon name="home" /><span>Главная</span>
+        </button>
+        <button className={`mobile-tabbar__item ${activeTab === 'products' ? 'is-active' : ''}`} type="button" onClick={() => { setActiveTab('products'); scrollTo('cabinet-products') }} aria-label="Продукты" aria-current={activeTab === 'products' ? 'page' : undefined}>
+          <AppIcon name="products" /><span>Продукты</span>
+        </button>
+        <button className="mobile-tabbar__item" type="button" onClick={onInstall} aria-label="Установить приложение">
+          <AppIcon name="install" /><span>Установить</span>
+        </button>
+        <button className={`mobile-tabbar__item ${activeTab === 'profile' ? 'is-active' : ''}`} type="button" onClick={() => { setActiveTab('profile'); setProfileOpen(true) }} aria-label="Профиль" aria-current={activeTab === 'profile' ? 'page' : undefined}>
+          <AppIcon name="profile" /><span>Профиль</span>
+        </button>
+      </nav>
+      {profileOpen && (
+        <Modal title="Ваш профиль" eyebrow="Личный кабинет" onClose={() => { setProfileOpen(false); setActiveTab('home') }}>
+          <section className="profile-sheet">
+            <div className="profile-avatar" aria-hidden="true">{auth.user.displayName.slice(0, 1).toLocaleUpperCase('ru')}</div>
+            <div><strong>{auth.user.displayName}</strong><p>{auth.user.email}</p></div>
+          </section>
+          <button className="button button--danger button--wide" type="button" onClick={onLogout}>Выйти из кабинета</button>
+        </Modal>
+      )}
     </div>
   )
 }
@@ -183,6 +219,7 @@ export default function App() {
     const path = next === 'game' ? '/game' : '/'
     window.history.pushState({}, '', path)
     setRoute(next)
+    window.scrollTo({ top: 0, left: 0 })
   }
 
   async function requestInstall() {

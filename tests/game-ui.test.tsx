@@ -31,6 +31,15 @@ describe('основной игровой сценарий', () => {
     vi.spyOn(Date, 'now').mockImplementation(() => { now += 500; return now })
   })
 
+  it('открывает колоду и возвращается в игру через мобильное меню', () => {
+    render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
+    expect(screen.getByRole('navigation', { name: 'Меню игры' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Колода' }))
+    expect(screen.getByRole('heading', { name: 'Вся колода' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Игра' }))
+    expect(screen.getByRole('heading', { name: 'Кажется,я тебя знаю.' })).toBeInTheDocument()
+  })
+
   it('переворачивает каждую закрытую карточку отдельно', () => {
     render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
     beginGame(4)
