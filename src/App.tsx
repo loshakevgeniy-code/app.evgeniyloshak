@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { getDeck, getMe, login, logout, type AuthPayload } from './api'
-import { BrandMark } from './components/BrandMark'
+import { BrandMark, LilyMark } from './components/BrandMark'
 import { AppIcon } from './components/AppIcon'
 import { Modal } from './components/Modal'
 import { GameApp } from './GameApp'
@@ -49,9 +49,9 @@ function LoginScreen({ onLogin }: { onLogin: (payload: AuthPayload) => void }) {
       <section className="auth-panel">
         <BrandMark />
         <div className="auth-copy">
-          <p className="eyebrow"><span className="dot dot--purple" /> Личный кабинет</p>
-          <h1>Ваши материалы<br />в одном месте</h1>
-          <p>Войдите, чтобы открыть доступные продукты и продолжить с того места, где остановились.</p>
+          <p className="eyebrow">Ближе к главному</p>
+          <h1>Разговоры,<br />которые остаются</h1>
+          <p>Войдите в Lilya, чтобы открывать свои колоды и возвращаться к важным разговорам.</p>
         </div>
         <form className="auth-form" onSubmit={submit}>
           <label>
@@ -64,22 +64,19 @@ function LoginScreen({ onLogin }: { onLogin: (payload: AuthPayload) => void }) {
           </label>
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="button button--primary button--wide" disabled={busy} type="submit">
-            {busy ? 'Входим…' : 'Войти'} <span aria-hidden="true">→</span>
+            {busy ? 'Входим…' : 'Продолжить'} <span aria-hidden="true">→</span>
           </button>
         </form>
-        <p className="auth-note">Доступ выдаётся отдельно. Ответы внутри игры не отправляются на сервер.</p>
+        <p className="auth-note">Доступ выдаётся отдельно. Ваши ответы не отправляются на сервер.</p>
       </section>
-      <aside className="auth-visual" aria-label="Карточная игра «Кажется, я тебя знаю»">
-        <div className="auth-visual__label">ПЕРВЫЙ ПРОДУКТ / 01</div>
-        <div className="auth-deck" aria-hidden="true">
-          <div className="auth-deck__card auth-deck__card--green">04</div>
-          <div className="auth-deck__card auth-deck__card--wine">02</div>
-          <div className="auth-deck__card auth-deck__card--paper">
-            <span>Кажется,<br />я тебя знаю</span>
-            <strong>?</strong>
-          </div>
+      <aside className="auth-visual" aria-label="Lilya — карточная игра для близких разговоров">
+        <div className="auth-visual__label">НАСТОЯЩИЕ ЛЮДИ · НАСТОЯЩИЕ ВОПРОСЫ</div>
+        <div className="auth-visual__brand" aria-hidden="true">
+          <LilyMark />
+          <strong>LILYA</strong>
+          <span>ближе к главному</span>
         </div>
-        <p>Электронная колода для разговора с близким человеком.</p>
+        <p>Хорошие вопросы<br />сближают.</p>
       </aside>
     </main>
   )
@@ -123,9 +120,9 @@ function Cabinet({
       </header>
       <main className="cabinet-main" id="cabinet-home">
         <div className="cabinet-intro">
-          <p className="eyebrow"><span className="dot dot--purple" /> Личный кабинет</p>
+          <p className="eyebrow">Lilya · личное пространство</p>
           <h1>Добро пожаловать,<br />{auth.user.displayName}</h1>
-          <p>Здесь будут собраны ваши игры, воркбуки и другие материалы.</p>
+          <p>Здесь собраны ваши колоды и разговоры, к которым хочется возвращаться.</p>
         </div>
         <section className="products-section" id="cabinet-products" aria-labelledby="products-title">
           <div className="section-title-row">
@@ -136,16 +133,18 @@ function Cabinet({
           <article className="product-card">
             <div className="product-card__copy">
               <p className="product-card__status"><span className="dot dot--lime" /> {gameAccess ? 'Доступ открыт' : 'Доступ не открыт'}</p>
-              <h3>Кажется,<br />я тебя знаю</h3>
-              <p>Карточная игра для разговора двух взрослых людей. 70 карточек, четыре главы и никакой оценки ответов.</p>
+              <h3>Lilya</h3>
+              <p>70 тёплых карточек для глубокого разговора с теми, кто вам дорог.</p>
               <button className="button button--lime" type="button" onClick={onOpenGame} disabled={!gameAccess}>
                 Открыть игру <span aria-hidden="true">→</span>
               </button>
             </div>
             <div className="product-card__art" aria-hidden="true">
-              <div className="mini-card mini-card--ochre">01</div>
-              <div className="mini-card mini-card--blue">03</div>
-              <div className="mini-card mini-card--paper"><span>?</span><small>70 карточек</small></div>
+              <div className="product-art-card">
+                <LilyMark />
+                <strong>LILYA</strong>
+                <span>хорошие вопросы сближают</span>
+              </div>
             </div>
           </article>
         </section>
@@ -167,7 +166,7 @@ function Cabinet({
         </button>
       </nav>
       {profileOpen && (
-        <Modal title="Ваш профиль" eyebrow="Личный кабинет" onClose={() => { setProfileOpen(false); setActiveTab('home') }}>
+        <Modal title="Ваш профиль" eyebrow="Lilya" onClose={() => { setProfileOpen(false); setActiveTab('home') }}>
           <section className="profile-sheet">
             <div className="profile-avatar" aria-hidden="true">{auth.user.displayName.slice(0, 1).toLocaleUpperCase('ru')}</div>
             <div><strong>{auth.user.displayName}</strong><p>{auth.user.email}</p></div>
@@ -263,7 +262,7 @@ export default function App() {
     setAuth(null)
   }
 
-  if (auth === undefined) return <main className="center-state"><div className="loading-mark" /><p>Открываем личный кабинет…</p></main>
+  if (auth === undefined) return <main className="center-state"><div className="loading-mark" /><p>Открываем Lilya…</p></main>
   if (!auth) return <><LoginScreen onLogin={setAuth} />{bootError && <div className="network-banner" role="status">{bootError}</div>}</>
 
   return (

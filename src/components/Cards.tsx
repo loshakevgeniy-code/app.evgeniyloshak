@@ -1,4 +1,5 @@
 import type { Card, Chapter, QuestionCard } from '../types'
+import { LilyMark } from './BrandMark'
 
 export function ChapterSymbol({ chapter, className = '' }: { chapter: Chapter; className?: string }) {
   const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 }
@@ -18,8 +19,8 @@ export function CardBack({ chapter, small = false }: { chapter: Chapter; small?:
       className={`game-card game-card--back card-tone--${chapter.id} ${small ? 'game-card--small' : ''}`}
       aria-label={`Закрытая карточка главы «${chapter.title}»`}
     >
-      <p className="card-kicker">Кажется,<br />я тебя знаю</p>
-      <ChapterSymbol chapter={chapter} className="card-symbol" />
+      <p className="card-kicker">LILYA</p>
+      <LilyMark className="card-symbol" />
       <p className="card-footer"><span>{chapter.number} / 04</span><span>{chapter.title}</span></p>
     </div>
   )
@@ -57,7 +58,7 @@ export function CardFace({
         <p className="card-prompt">{card.prompt}</p>
       </div>
       <footer className="card-meta card-meta--bottom">
-        <span>Кажется, я тебя знаю</span>
+        <span>LILYA</span>
         {card.type === 'question' && card.guess && <span className="card-tag">Можно угадать</span>}
         {onFavorite && (
           <button

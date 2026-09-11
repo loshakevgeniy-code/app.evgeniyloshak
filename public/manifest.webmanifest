@@ -1,7 +1,7 @@
 {
-  "name": "Личный кабинет · Евгений Лошак",
-  "short_name": "Евгений Лошак",
-  "description": "Игры и материалы Евгения Лошака.",
+  "name": "Lilya · Разговоры, которые остаются",
+  "short_name": "Lilya",
+  "description": "Тёплые карточки для глубоких разговоров с близкими.",
   "lang": "ru",
   "id": "/",
   "start_url": "/",
@@ -10,8 +10,8 @@
   "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait-primary",
   "categories": ["lifestyle", "entertainment"],
-  "background_color": "#F6F6F3",
-  "theme_color": "#F6F6F3",
+  "background_color": "#F2EADF",
+  "theme_color": "#F2EADF",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

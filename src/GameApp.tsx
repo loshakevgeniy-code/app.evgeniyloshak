@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CardBack, CardFace, ChapterSymbol, QuestionCardFace } from './components/Cards'
 import { AppIcon } from './components/AppIcon'
+import { LilyMark } from './components/BrandMark'
 import { Modal } from './components/Modal'
 import { cardMatches } from './features/catalog/search'
 import { createGameSession, gameReducer, makeViewKey, type GameCommand } from './features/game/engine'
@@ -52,7 +53,7 @@ function chapterForCard(deck: Deck, card: Card): Chapter | undefined {
 function GameHeader({ onHome, onRules, onSettings }: { onHome: () => void; onRules: () => void; onSettings: () => void }) {
   return (
     <header className="game-header">
-      <button className="text-logo" type="button" onClick={onHome}><span>Кажется,<br />я тебя знаю</span><span className="game-mobile-title">Игра</span></button>
+      <button className="text-logo" type="button" onClick={onHome}><span>Lilya<br /><small>ближе к главному</small></span><span className="game-mobile-title">Lilya</span></button>
       <nav className="game-desktop-nav" aria-label="Навигация игры">
         <button className="link-button" type="button" onClick={onRules}>Правила</button>
         <button className="link-button" type="button" onClick={onSettings}>Настройки</button>
@@ -112,28 +113,26 @@ function GameHome({
       <GameHeader onHome={() => undefined} onRules={onRules} onSettings={onSettings} />
       <main className="game-home">
         <section className="game-home__copy">
-          <p className="eyebrow">Игра-портрет для двоих</p>
-          <h1>Кажется,<br />я тебя <em>знаю.</em></h1>
-          <p className="game-lead">Вы знакомы давно. Но все ли истории друг друга вы слышали?</p>
+          <p className="eyebrow">Разговор для двоих</p>
+          <h1>Ближе<br />к <em>главному.</em></h1>
+          <p className="game-lead">Хорошие вопросы помогают услышать истории, которые ещё не звучали между вами.</p>
           <div className="button-row">
             {hasActiveSession && <button className="button button--game" type="button" onClick={onContinue}>Продолжить разговор</button>}
             <button className={hasActiveSession ? 'button button--paper' : 'button button--game'} type="button" onClick={onStart}>Начать игру</button>
             <button className="button button--paper" type="button" onClick={onCatalog}>Посмотреть колоду</button>
           </div>
           <p className="game-facts">{deck.cards.length} карточек · {deck.chapters.length} главы · без правильных ответов</p>
-          <p className="privacy-line">Ход партии сохраняется только в этом браузере. Ответы не записываются.</p>
+          <p className="privacy-line">История партии остаётся на этом устройстве. Ответы не записываются.</p>
         </section>
         <div className="hero-deck" aria-hidden="true">
-          <div className="hero-deck__card hero-deck__card--green" />
-          <div className="hero-deck__card hero-deck__card--wine" />
-          <div className="hero-deck__card hero-deck__card--paper">
-            <p>Первые свои</p>
-            <strong>На что ушли первые деньги, которые удалось заработать самостоятельно?</strong>
-            <small>Q02</small>
+          <div className="hero-deck__brand">
+            <LilyMark />
+            <strong>LILYA</strong>
+            <span>истории объединяют</span>
           </div>
         </div>
       </main>
-      <button className="back-cabinet" type="button" onClick={onBack}>← Вернуться в личный кабинет</button>
+      <button className="back-cabinet" type="button" onClick={onBack}>← Вернуться в Lilya</button>
       <MobileGameNav active="game" onCabinet={onBack} onHome={() => undefined} onCatalog={onCatalog} onSettings={onSettings} />
     </div>
   )
@@ -266,7 +265,7 @@ function GameTopBar({ session, deck, onPause, onFinish, onRules }: { session: Ga
   const chapter = deck.chapters[Math.min(session.currentChapterIndex, deck.chapters.length - 1)]
   return (
     <header className="play-topbar">
-      <button className="text-logo text-logo--small" type="button" onClick={onRules} aria-label="Правила"><span>Кажется, я тебя знаю</span><AppIcon name="rules" className="play-mobile-icon" /></button>
+      <button className="text-logo text-logo--small" type="button" onClick={onRules} aria-label="Правила"><span>Lilya</span><AppIcon name="rules" className="play-mobile-icon" /></button>
       <div className="play-progress"><span>{chapter?.number} / 04</span><strong>{discussed} из {session.gameSize} вопросов</strong></div>
       <div className="play-actions">
         <button className="link-button" type="button" onClick={onPause} aria-label="Пауза"><AppIcon name="pause" className="play-mobile-icon" /><span>Пауза</span></button>

@@ -37,7 +37,7 @@ describe('основной игровой сценарий', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Колода' }))
     expect(screen.getByRole('heading', { name: 'Вся колода' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Игра' }))
-    expect(screen.getByRole('heading', { name: 'Кажется,я тебя знаю.' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Ближек главному.' })).toBeInTheDocument()
   })
 
   it('переворачивает каждую закрытую карточку отдельно', () => {
