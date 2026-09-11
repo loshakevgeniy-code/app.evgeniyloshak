@@ -1,4 +1,4 @@
-const CACHE = 'el-cabinet-shell-v1'
+const CACHE = 'el-cabinet-shell-v2'
 const SHELL = ['/', '/manifest.webmanifest', '/icon.svg', '/icon-192.png', '/icon-512.png']
 
 self.addEventListener('install', (event) => {
