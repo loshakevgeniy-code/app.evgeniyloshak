@@ -206,6 +206,7 @@ h1, h2, h3, p { margin-top: 0; }
 .flip-card__side { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .flip-card__side--face { transform: rotateY(180deg); }
 .flip-card__side > .game-card { height: 100%; min-height: 0; }
+.flip-progress { margin: 0; color: var(--game-muted); font-size: 13px; font-weight: 700; letter-spacing: .04em; }
 
 .game-card { position: relative; width: 100%; min-height: 560px; aspect-ratio: 3/4; overflow: visible; padding: 30px; border-radius: 22px; border: 1px solid var(--game-line); box-shadow: 0 20px 42px -28px rgba(42,42,42,.35); }
 .game-card--small { min-height: 480px; }

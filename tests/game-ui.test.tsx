@@ -16,7 +16,8 @@ function beginGame(size: 4 | 8) {
 function completeNextQuestion() {
   const draw = screen.queryByRole('button', { name: 'Взять две карточки' })
   if (draw) fireEvent.click(draw)
-  fireEvent.click(screen.getByRole('button', { name: 'Открыть два вопроса' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Перевернуть карточку 1' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Перевернуть карточку 2' }))
   fireEvent.click(screen.getAllByRole('button', { name: 'Выбрать этот вопрос' })[0])
   const listen = screen.queryByRole('button', { name: 'Послушать историю' })
   if (listen) fireEvent.click(listen)
@@ -30,13 +31,17 @@ describe('основной игровой сценарий', () => {
     vi.spyOn(Date, 'now').mockImplementation(() => { now += 500; return now })
   })
 
-  it('переворачивает закрытую пару по нажатию на карточку', () => {
+  it('переворачивает каждую закрытую карточку отдельно', () => {
     render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
     beginGame(4)
     fireEvent.click(screen.getByRole('button', { name: 'Взять две карточки' }))
-    const closedCards = screen.getAllByRole('button', { name: 'Перевернуть две карточки' })
-    fireEvent.click(closedCards[0])
-    expect(closedCards[0]).toHaveClass('is-flipped')
+    const first = screen.getByRole('button', { name: 'Перевернуть карточку 1' })
+    fireEvent.click(first)
+    expect(first).toHaveClass('is-flipped')
+    expect(screen.queryAllByRole('button', { name: 'Выбрать этот вопрос' })).toHaveLength(0)
+    const second = screen.getByRole('button', { name: 'Перевернуть карточку 2' })
+    fireEvent.click(second)
+    expect(second).toHaveClass('is-flipped')
     expect(screen.getAllByRole('button', { name: 'Выбрать этот вопрос' })).toHaveLength(2)
   })
 

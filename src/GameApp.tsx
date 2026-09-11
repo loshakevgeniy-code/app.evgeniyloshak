@@ -378,6 +378,7 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
   const [helper, setHelper] = useState<{ type: 'followup' | 'special'; selectedId?: string; showAll?: boolean } | null>(null)
   const [storageMessage, setStorageMessage] = useState(initialSave.corrupted ? 'Сохранённая партия была повреждена, поэтому мы начали с чистого состояния.' : '')
   const [otherTab, setOtherTab] = useState(false)
+  const [flippedCardIds, setFlippedCardIds] = useState<string[]>([])
   const interactionLock = useRef(0)
 
   useEffect(() => {
@@ -404,6 +405,11 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
     setHelper(null)
   }, [session?.activeQuestionId, session?.phase])
 
+  const pairKey = session?.candidates.join('|') || ''
+  useEffect(() => {
+    setFlippedCardIds([])
+  }, [pairKey])
+
   function startSetup() {
     if (session && session.phase !== 'finished' && !window.confirm('Начать новую партию? Текущий незавершённый разговор будет заменён.')) return
     setSetup({ role: 'close_person', gameSize: 4, recordingMode: 'conversation' })
@@ -427,7 +433,7 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
   }
 
   function send(kind: GameCommand['kind'], id?: string) {
-    const exempt = kind === 'PAUSE' || kind === 'RESUME' || kind === 'GO_TO_CLOSING'
+    const exempt = kind === 'PAUSE' || kind === 'RESUME' || kind === 'GO_TO_CLOSING' || kind === 'REVEAL_PAIR'
     const now = Date.now()
     if (!exempt && now < interactionLock.current) return
     if (!exempt) interactionLock.current = now + 320
@@ -441,6 +447,13 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
         viewKey: makeViewKey(current),
       })
     })
+  }
+
+  function flipCard(id: string) {
+    if (!session || session.phase !== 'pair_closed' || flippedCardIds.includes(id)) return
+    const next = [...flippedCardIds, id]
+    setFlippedCardIds(next)
+    if (next.length === session.candidates.length) send('REVEAL_PAIR')
   }
 
   function toggleFavorite(id: string) {
@@ -578,19 +591,20 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
                 {session.candidates.map((id) => {
                   const card = questionById(deck, id)
                   if (!card) return null
-                  const closed = session.phase === 'pair_closed'
+                  const interactive = session.phase === 'pair_closed' && !flippedCardIds.includes(id)
+                  const flipped = session.phase === 'pair_open' || flippedCardIds.includes(id)
                   return (
                     <div className="pair-option" key={id}>
                       <div
-                        className={`flip-card ${closed ? '' : 'is-flipped'}`}
-                        role={closed ? 'button' : undefined}
-                        tabIndex={closed ? 0 : undefined}
-                        aria-label={closed ? 'Перевернуть две карточки' : undefined}
-                        onClick={closed ? () => send('REVEAL_PAIR') : undefined}
-                        onKeyDown={closed ? (event) => {
+                        className={`flip-card ${flipped ? 'is-flipped' : ''}`}
+                        role={interactive ? 'button' : undefined}
+                        tabIndex={interactive ? 0 : undefined}
+                        aria-label={interactive ? `Перевернуть карточку ${session.candidates.indexOf(id) + 1}` : undefined}
+                        onClick={interactive ? () => flipCard(id) : undefined}
+                        onKeyDown={interactive ? (event) => {
                           if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault()
-                            send('REVEAL_PAIR')
+                            flipCard(id)
                           }
                         } : undefined}
                       >
@@ -599,13 +613,13 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
                           <div className="flip-card__side flip-card__side--face"><QuestionCardFace card={card} chapter={currentChapter} compact /></div>
                         </div>
                       </div>
-                      {!closed && <button className="button button--game button--wide" type="button" onClick={() => send('SELECT_QUESTION', id)}>Выбрать этот вопрос</button>}
+                      {session.phase === 'pair_open' && <button className="button button--game button--wide" type="button" onClick={() => send('SELECT_QUESTION', id)}>Выбрать этот вопрос</button>}
                     </div>
                   )
                 })}
               </div>
               {session.phase === 'pair_closed'
-                ? <button className="button button--game" type="button" onClick={() => send('REVEAL_PAIR')}>Открыть два вопроса</button>
+                ? <p className="flip-progress" aria-live="polite">Открыто {flippedCardIds.length} из {session.candidates.length}</p>
                 : <div className="button-row"><button className="button button--paper" type="button" onClick={() => send('REPLACE_PAIR')}>Другие вопросы</button><button className="link-button" type="button" onClick={() => send('SKIP_CHAPTER')}>Пропустить главу</button></div>}
             </section>
           )}
