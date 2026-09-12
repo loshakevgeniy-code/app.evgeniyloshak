@@ -40,30 +40,65 @@ export function fisherYates<T>(items: T[], random: () => number = Math.random): 
   return result
 }
 
+export interface GameSetupConfig {
+  role: HeroRole
+  recordingMode: RecordingMode
+  gameSize: 4 | 8
+  includePersonalTopics?: boolean
+  sharedChildhood?: boolean
+}
+
+export function isQuestionEligible(
+  card: QuestionCard,
+  config: Pick<GameSetupConfig, 'role' | 'includePersonalTopics' | 'sharedChildhood'>,
+) {
+  if (card.requiresTopicOptIn && !config.includePersonalTopics) return false
+  if (card.audience === 'parent' && !['mother', 'father'].includes(config.role)) return false
+  if (card.audience === 'siblings' && !['sister', 'brother'].includes(config.role)) return false
+  if (card.requiresSharedChildhood && !config.sharedChildhood) return false
+  return true
+}
+
+export function eligibleQuestions(
+  deck: Deck,
+  config: Pick<GameSetupConfig, 'role' | 'includePersonalTopics' | 'sharedChildhood'>,
+) {
+  return deck.cards.filter((card): card is QuestionCard => card.type === 'question' && isQuestionEligible(card, config))
+}
+
 export function createGameSession(
   deck: Deck,
-  config: { role: HeroRole; recordingMode: RecordingMode; gameSize: 4 | 8 },
+  config: GameSetupConfig,
   random: () => number = Math.random,
   occurredAt = new Date().toISOString(),
 ): GameSession {
   const statuses: GameSession['statuses'] = {}
   const chapters = {} as GameSession['chapters']
+  const allowedIds = new Set(eligibleQuestions(deck, config).map((card) => card.id))
   for (const chapter of deck.chapters) {
+    const order = chapter.cardIds.filter((id) => allowedIds.has(id))
     chapters[chapter.id] = {
-      order: fisherYates(chapter.cardIds, random),
+      order: fisherYates(order, random),
       cursor: 0,
       completed: [],
     }
-    for (const id of chapter.cardIds) statuses[id] = 'available'
+    for (const id of order) statuses[id] = 'available'
   }
 
+  const closingCardId = fisherYates(
+    deck.cards.filter((card) => card.type === 'closing').map((card) => card.id),
+    random,
+  )[0] || null
+
   return {
-    schemaVersion: '1.0.0',
+    schemaVersion: '2.0.0',
     deckVersion: deck.deckVersion,
     sessionId: crypto.randomUUID(),
     role: config.role,
     recordingMode: config.recordingMode,
     gameSize: config.gameSize,
+    includePersonalTopics: config.includePersonalTopics === true,
+    sharedChildhood: config.sharedChildhood === true,
     targetPerChapter: config.gameSize === 4 ? 1 : 2,
     phase: 'rules',
     currentChapterIndex: 0,
@@ -72,6 +107,7 @@ export function createGameSession(
     candidates: [],
     activeQuestionId: null,
     discussedInOrder: [],
+    closingCardId,
     closingViewed: false,
     paused: false,
     revision: 0,
@@ -275,12 +311,15 @@ export function gameReducer(deck: Deck, state: GameSession, command: GameCommand
 
 export function assertGameInvariants(deck: Deck, state: GameSession): string[] {
   const errors: string[] = []
+  const eligibleIds = new Set(eligibleQuestions(deck, state).map((card) => card.id))
   for (const chapter of deck.chapters) {
     const current = state.chapters[chapter.id]
+    const expected = chapter.cardIds.filter((id) => eligibleIds.has(id))
     if (
       !current
-      || current.order.length !== chapter.cardIds.length
-      || new Set(current.order).size !== chapter.cardIds.length
+      || current.order.length !== expected.length
+      || new Set(current.order).size !== expected.length
+      || expected.some((id) => !current.order.includes(id))
     ) errors.push(`order:${chapter.id}`)
     if (current && (current.cursor < 0 || current.cursor > current.order.length)) errors.push(`cursor:${chapter.id}`)
   }

@@ -130,6 +130,11 @@ function Cabinet({
           <h1>Добро пожаловать,<br />{auth.user.displayName}</h1>
           <p>Здесь собраны ваши колоды и разговоры, к которым хочется возвращаться.</p>
         </div>
+        <section className="cabinet-overview" aria-label="Возможности Lilya">
+          <article><span>240</span><p>основных вопросов</p></article>
+          <article><span>12</span><p>тем для разных встреч</p></article>
+          <article><span>4 / 8</span><p>вопросов за один разговор</p></article>
+        </section>
         <section className="products-section" id="cabinet-products" aria-labelledby="products-title">
           <div className="section-title-row">
             <p className="eyebrow">01 / Мои продукты</p>
@@ -140,7 +145,7 @@ function Cabinet({
             <div className="product-card__copy">
               <p className="product-card__status"><span className="dot dot--lime" /> {gameAccess ? 'Доступ открыт' : 'Доступ не открыт'}</p>
               <h3>Lilya</h3>
-              <p>70 тёплых карточек для глубокого разговора с теми, кто вам дорог.</p>
+              <p>316 бережно отобранных карточек: вопросы, уточнения и ходы для разговора с теми, кто вам дорог.</p>
               <button className="button button--lime" type="button" onClick={onOpenGame} disabled={!gameAccess}>
                 Открыть игру <span aria-hidden="true">→</span>
               </button>

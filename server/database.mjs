@@ -54,7 +54,7 @@ export function bootstrapProduct(db) {
     INSERT INTO products (slug, title, status, created_at)
     VALUES (?, ?, 'active', ?)
     ON CONFLICT(slug) DO UPDATE SET title = excluded.title, status = 'active'
-  `).run('know-you', 'Кажется, я тебя знаю', now)
+  `).run('know-you', 'Lilya', now)
 }
 
 export function bootstrapAdmin(db, config) {

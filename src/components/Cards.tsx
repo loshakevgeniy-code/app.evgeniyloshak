@@ -1,4 +1,4 @@
-import type { Card, Chapter, QuestionCard } from '../types'
+import type { Card, Chapter, QuestionCard, Topic } from '../types'
 import { LilyMark } from './BrandMark'
 
 export function ChapterSymbol({ chapter, className = '' }: { chapter: Chapter; className?: string }) {
@@ -13,7 +13,7 @@ export function ChapterSymbol({ chapter, className = '' }: { chapter: Chapter; c
   )
 }
 
-export function CardBack({ chapter, small = false }: { chapter: Chapter; small?: boolean }) {
+export function CardBack({ chapter, small = false, total = 4 }: { chapter: Chapter; small?: boolean; total?: number }) {
   return (
     <div
       className={`game-card game-card--back card-tone--${chapter.id} ${small ? 'game-card--small' : ''}`}
@@ -21,12 +21,13 @@ export function CardBack({ chapter, small = false }: { chapter: Chapter; small?:
     >
       <p className="card-kicker">LILYA</p>
       <LilyMark className="card-symbol" />
-      <p className="card-footer"><span>{chapter.number} / 04</span><span>{chapter.title}</span></p>
+      <p className="card-footer"><span>{chapter.number} / {String(total).padStart(2, '0')}</span><span>{chapter.title}</span></p>
     </div>
   )
 }
 
-function cardLabel(card: Card, chapter?: Chapter) {
+function cardLabel(card: Card, chapter?: Chapter, topic?: Topic) {
+  if (card.type === 'question' && topic) return `${topic.number} · ${topic.title}`
   if (chapter) return `${chapter.number} · ${chapter.title}`
   if (card.type === 'follow_up') return 'Уточнение'
   if (card.type === 'special') return 'Специальный ход'
@@ -36,12 +37,14 @@ function cardLabel(card: Card, chapter?: Chapter) {
 export function CardFace({
   card,
   chapter,
+  topic,
   compact = false,
   favorite = false,
   onFavorite,
 }: {
   card: Card
   chapter?: Chapter
+  topic?: Topic
   compact?: boolean
   favorite?: boolean
   onFavorite?: () => void
@@ -50,15 +53,16 @@ export function CardFace({
   return (
     <article className={`game-card game-card--face card-tone--${tone} ${compact ? 'game-card--compact' : ''}`}>
       <header className="card-meta">
-        <span>{cardLabel(card, chapter)}</span>
+        <span>{cardLabel(card, chapter, topic)}</span>
         <span>{card.id}</span>
       </header>
       <div className="card-main">
-        <p className="card-title">{card.title}</p>
+        {card.type !== 'question' && <p className="card-title">{card.title}</p>}
         <p className="card-prompt">{card.prompt}</p>
       </div>
       <footer className="card-meta card-meta--bottom">
         <span>LILYA</span>
+        {card.type === 'question' && <span className="card-depth">{card.depth === 'light' ? 'лёгкий' : card.depth === 'medium' ? 'средний' : 'личное · по выбору'}</span>}
         {card.type === 'question' && card.guess && <span className="card-tag">Можно угадать</span>}
         {onFavorite && (
           <button
@@ -79,6 +83,7 @@ export function CardFace({
 export function QuestionCardFace(props: {
   card: QuestionCard
   chapter: Chapter
+  topic?: Topic
   compact?: boolean
 }) {
   return <CardFace {...props} />

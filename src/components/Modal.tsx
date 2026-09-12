@@ -35,6 +35,7 @@ export function Modal({
       }}
     >
       <div className="modal__sheet">
+        <span className="modal__handle" aria-hidden="true" />
         <header className="modal__header">
           <div>
             {eyebrow && <p className="eyebrow">{eyebrow}</p>}

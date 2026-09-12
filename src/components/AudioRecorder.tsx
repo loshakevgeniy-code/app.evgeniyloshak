@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import {
   audioRecordingSupported,
   deleteAllAudioRecordings,
@@ -151,9 +151,12 @@ export function AudioRecorder({
   return (
     <div className="audio-recorder">
       {context?.prompt && <section className="audio-context"><p className="eyebrow">Текущий вопрос</p><p>{context.prompt}</p></section>}
-      <div className={`audio-recorder__stage ${status === 'recording' ? 'is-recording' : ''}`}>
-        <span className="audio-pulse" aria-hidden="true" />
-        <strong>{status === 'recording' ? formatRecordingDuration(elapsed) : status === 'requesting' ? 'Включаем микрофон…' : status === 'saving' ? 'Сохраняем…' : status === 'saved' ? 'Запись сохранена' : 'Готово к записи'}</strong>
+      <div className={`audio-recorder__stage is-${status}`}>
+        <p className="audio-status"><span aria-hidden="true" />{status === 'recording' ? 'Идёт запись' : status === 'saved' ? 'Сохранено на устройстве' : 'Диктофон Lilya'}</p>
+        <strong>{status === 'recording' ? formatRecordingDuration(elapsed) : status === 'requesting' ? 'Включаем микрофон…' : status === 'saving' ? 'Сохраняем…' : status === 'saved' ? 'Запись готова' : '00:00'}</strong>
+        <div className="audio-wave" aria-hidden="true">
+          {Array.from({ length: 23 }, (_, index) => <i key={index} style={{ '--bar': index } as CSSProperties} />)}
+        </div>
         <p>{status === 'recording' ? 'Можно говорить. Не закрывайте приложение до остановки.' : 'Аудио останется только на этом устройстве.'}</p>
       </div>
       {consentRequired && status === 'idle' && (

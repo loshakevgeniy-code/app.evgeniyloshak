@@ -1,9 +1,11 @@
 import type { Deck, GameSession, Preferences } from '../../types'
 import { assertGameInvariants } from './engine'
 
-export const SESSION_KEY = 'familyPortrait.session.v1'
-export const PREFERENCES_KEY = 'familyPortrait.preferences.v1'
-const TEST_KEY = 'familyPortrait.storage.test'
+export const SESSION_KEY = 'lilya.session.v2'
+export const PREFERENCES_KEY = 'lilya.preferences.v2'
+const LEGACY_SESSION_KEY = 'familyPortrait.session.v1'
+const LEGACY_PREFERENCES_KEY = 'familyPortrait.preferences.v1'
+const TEST_KEY = 'lilya.storage.test'
 
 export const DEFAULT_PREFERENCES: Preferences = {
   largeText: false,
@@ -51,7 +53,7 @@ export function loadSession(storage: StorageAdapter, deck: Deck): { session: Gam
   if (!saved) return { session: null, corrupted: false }
   try {
     const session = JSON.parse(saved) as GameSession
-    const valid = session?.schemaVersion === '1.0.0'
+    const valid = session?.schemaVersion === '2.0.0'
       && session.deckVersion === deck.deckVersion
       && typeof session.sessionId === 'string'
       && typeof session.revision === 'number'
@@ -94,4 +96,6 @@ export function savePreferences(storage: StorageAdapter, preferences: Preference
 export function deleteAppData(storage: StorageAdapter) {
   storage.remove(SESSION_KEY)
   storage.remove(PREFERENCES_KEY)
+  storage.remove(LEGACY_SESSION_KEY)
+  storage.remove(LEGACY_PREFERENCES_KEY)
 }

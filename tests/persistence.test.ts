@@ -9,9 +9,19 @@ const deck = validateDeck(rawDeck)
 describe('локальное сохранение', () => {
   it('восстанавливает корректную партию', () => {
     const storage = createStorageAdapter(localStorage)
-    const session = createGameSession(deck, { role: 'close_person', gameSize: 4, recordingMode: 'conversation' })
+    const session = createGameSession(deck, {
+      role: 'sister',
+      gameSize: 4,
+      recordingMode: 'conversation',
+      includePersonalTopics: true,
+      sharedChildhood: true,
+    })
     expect(saveSession(storage, session)).toBe(true)
-    expect(loadSession(storage, deck).session?.sessionId).toBe(session.sessionId)
+    const restored = loadSession(storage, deck).session
+    expect(restored?.sessionId).toBe(session.sessionId)
+    expect(restored?.schemaVersion).toBe('2.0.0')
+    expect(restored?.includePersonalTopics).toBe(true)
+    expect(restored?.sharedChildhood).toBe(true)
     localStorage.removeItem(SESSION_KEY)
   })
 

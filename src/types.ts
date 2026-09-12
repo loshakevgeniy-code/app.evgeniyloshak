@@ -1,5 +1,22 @@
 export type ChapterId = 'beginnings' | 'character' | 'turns' | 'present'
 export type CardType = 'question' | 'follow_up' | 'special' | 'closing'
+export type TopicId =
+  | 'C01'
+  | 'C02'
+  | 'C03'
+  | 'C04'
+  | 'C05'
+  | 'C06'
+  | 'C07'
+  | 'C08'
+  | 'C09'
+  | 'C10'
+  | 'C11'
+  | 'C12'
+export type QuestionId = `C${string}-${string}`
+export type QuestionDepth = 'light' | 'medium' | 'deep'
+export type CardAudience = 'general' | 'parent' | 'siblings'
+export type EditorialStatus = 'editorial_candidate_untested'
 
 export interface Chapter {
   id: ChapterId
@@ -8,7 +25,18 @@ export interface Chapter {
   subtitle: string
   colorToken: string
   symbol: 'window' | 'overlap' | 'fork' | 'open-circle'
-  cardIds: string[]
+  cardIds: QuestionId[]
+}
+
+export interface Topic {
+  id: TopicId
+  number: string
+  title: string
+  description: string
+  stageId: ChapterId
+  audience: CardAudience
+  requiresTopicOptIn: boolean
+  cardIds: QuestionId[]
 }
 
 interface CardBase {
@@ -17,6 +45,8 @@ interface CardBase {
   title: string
   prompt: string
   detailPrompt: string
+  coreCandidate: boolean
+  status: EditorialStatus
   editorial: {
     purpose?: string
     whenToUse?: string
@@ -25,27 +55,47 @@ interface CardBase {
 }
 
 export interface QuestionCard extends CardBase {
-  id: `Q${string}`
+  id: QuestionId
   type: 'question'
   chapterId: ChapterId
+  topicId: TopicId
   number: number
-  guess: { prompt: string } | null
+  depth: QuestionDepth
+  audience: CardAudience
+  requiresSharedChildhood: boolean
+  requiresTopicOptIn: boolean
+  guess: { eligible: true; target: string; prompt: string } | null
   recommendedFollowUps: string[]
 }
 
 export interface FollowUpCard extends CardBase {
   id: `F${string}`
   type: 'follow_up'
+  excludeForSensitiveTopics: boolean
 }
 
+export type SpecialAction =
+  | 'private_guess'
+  | 'show_object'
+  | 'return_question'
+  | 'choose_two'
+  | 'draw_route'
+  | 'touch_object'
+  | 'compare_times'
+  | 'change_role'
+  | 'photo_outside_frame'
+  | 'parallel_versions'
+  | 'own_question'
+  | 'change_genre'
+
 export interface SpecialCard extends CardBase {
-  id: `S${string}`
+  id: `A${string}`
   type: 'special'
-  action: 'return_question' | 'show_object'
+  action: SpecialAction
 }
 
 export interface ClosingCard extends CardBase {
-  id: `C${string}`
+  id: `Z${string}`
   type: 'closing'
 }
 
@@ -54,12 +104,14 @@ export type Card = QuestionCard | FollowUpCard | SpecialCard | ClosingCard
 export interface Deck {
   schemaVersion: string
   deckVersion: string
+  contentVersion: string
   locale: string
   title: string
   subtitle: string
   shortDescription: string
   audience: string
   chapters: Chapter[]
+  topics: Topic[]
   cards: Card[]
 }
 
@@ -98,12 +150,14 @@ export interface GameChapterState {
 }
 
 export interface GameSession {
-  schemaVersion: '1.0.0'
+  schemaVersion: '2.0.0'
   deckVersion: string
   sessionId: string
   role: HeroRole
   recordingMode: RecordingMode
   gameSize: GameSize
+  includePersonalTopics: boolean
+  sharedChildhood: boolean
   targetPerChapter: 1 | 2
   phase: GamePhase
   currentChapterIndex: number
@@ -112,6 +166,7 @@ export interface GameSession {
   candidates: string[]
   activeQuestionId: string | null
   discussedInOrder: string[]
+  closingCardId: string | null
   closingViewed: boolean
   paused: boolean
   revision: number

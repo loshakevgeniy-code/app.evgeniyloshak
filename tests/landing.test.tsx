@@ -8,7 +8,10 @@ describe('публичный лендинг Lilya', () => {
     render(<LandingPage onLogin={onLogin} />)
 
     expect(screen.getByRole('heading', { name: 'Узнавайте тех, кого любите' })).toBeInTheDocument()
-    expect(screen.getByText('70')).toBeInTheDocument()
+    expect(screen.getByText('240')).toBeInTheDocument()
+    expect(screen.getByText('основных вопросов')).toBeInTheDocument()
+    expect(screen.getByText('12')).toBeInTheDocument()
+    expect(screen.getByText('тем для разных встреч')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Начните там, где вы сейчас' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /Открыть Lilya/ }))

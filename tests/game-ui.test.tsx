@@ -8,8 +8,10 @@ const deck = validateDeck(rawDeck)
 
 function beginGame(size: 4 | 8) {
   fireEvent.click(screen.getByRole('button', { name: 'Начать игру' }))
-  if (size === 8) fireEvent.click(screen.getByRole('radio', { name: /Полный разговор/ }))
   fireEvent.click(screen.getByRole('button', { name: /Продолжить/ }))
+  if (size === 8) fireEvent.click(screen.getByRole('radio', { name: /Глубокий разговор/ }))
+  fireEvent.click(screen.getByRole('button', { name: /Продолжить/ }))
+  fireEvent.click(screen.getByRole('button', { name: /Начать разговор/ }))
   fireEvent.click(screen.getByRole('button', { name: 'Начать с первой главы' }))
 }
 
@@ -19,7 +21,7 @@ function completeNextQuestion() {
   fireEvent.click(screen.getByRole('button', { name: 'Перевернуть карточку 1' }))
   fireEvent.click(screen.getByRole('button', { name: 'Перевернуть карточку 2' }))
   fireEvent.click(screen.getAllByRole('button', { name: 'Выбрать этот вопрос' })[0])
-  const listen = screen.queryByRole('button', { name: 'Послушать историю' })
+  const listen = screen.queryByRole('button', { name: 'Перейти к рассказу' })
   if (listen) fireEvent.click(listen)
   fireEvent.click(screen.getByRole('button', { name: /Вопрос обсудили/ }))
 }
@@ -33,11 +35,44 @@ describe('основной игровой сценарий', () => {
 
   it('открывает колоду и возвращается в игру через мобильное меню', () => {
     render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
+    expect(screen.getByText('240 вопросов · 12 тем · 316 карточек всего')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Меню игры' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Колода' }))
-    expect(screen.getByRole('heading', { name: 'Вся колода' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Библиотека.*разговоров/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Полная библиотека316' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Все 316' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Вопросы 240' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Уточнения 40' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Игра' }))
-    expect(screen.getByRole('heading', { name: 'Ближек главному.' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Ближе.*к главному/ })).toBeInTheDocument()
+  })
+
+  it('проводит по трём шагам настройки и сохраняет выбор при возврате', () => {
+    render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Начать игру' }))
+
+    expect(screen.getByRole('heading', { name: 'С кем вы сегодня?' })).toBeInTheDocument()
+    expect(screen.getByText('Собеседник').parentElement).toHaveAttribute('aria-current', 'step')
+    fireEvent.click(screen.getByRole('radio', { name: /Сестра/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Продолжить/ }))
+
+    expect(screen.getByRole('heading', { name: 'Каким будет этот разговор?' })).toBeInTheDocument()
+    expect(screen.getByText('Формат').parentElement).toHaveAttribute('aria-current', 'step')
+    expect(screen.getByText('192')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('checkbox', { name: /Мы росли вместе/ }))
+    expect(screen.getByText('199')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('checkbox', { name: /Личные темы/ }))
+    expect(screen.getByText('220')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Назад/ }))
+    expect(screen.getByRole('heading', { name: 'С кем вы сегодня?' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Сестра/ })).toBeChecked()
+    fireEvent.click(screen.getByRole('button', { name: /Продолжить/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Продолжить/ }))
+
+    expect(screen.getByRole('heading', { name: 'Хотите сохранить голоса?' })).toBeInTheDocument()
+    expect(screen.getByText('Запись').parentElement).toHaveAttribute('aria-current', 'step')
+    expect(screen.getByRole('button', { name: /Начать разговор/ })).toBeInTheDocument()
   })
 
   it('переворачивает каждую закрытую карточку отдельно', () => {
@@ -76,8 +111,10 @@ describe('основной игровой сценарий', () => {
   it('предлагает встроенный диктофон только после согласия участников', () => {
     render(<GameApp deck={deck} onBackToCabinet={() => undefined} />)
     fireEvent.click(screen.getByRole('button', { name: 'Начать игру' }))
-    fireEvent.click(screen.getByRole('radio', { name: /Записываем звук/ }))
     fireEvent.click(screen.getByRole('button', { name: /Продолжить/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Продолжить/ }))
+    fireEvent.click(screen.getByRole('radio', { name: /Диктофон Lilya/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Начать разговор/ }))
 
     expect(screen.getByRole('heading', { name: 'Сначала договоритесь' })).toBeInTheDocument()
     expect(screen.getByText('Аудио · на этом устройстве')).toBeInTheDocument()

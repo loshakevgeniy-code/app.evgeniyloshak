@@ -52,8 +52,8 @@ export function LandingPage({ onLogin }: { onLogin: () => void }) {
             <p>Lilya — это цифровая колода для спокойных и честных разговоров. Вы выбираете, с кем играете, открываете карточки по одной и двигаетесь в своём темпе.</p>
           </div>
           <dl className="landing-facts">
-            <div><dt>70</dt><dd>бережных карточек</dd></div>
-            <div><dt>4</dt><dd>главы разговора</dd></div>
+            <div><dt>240</dt><dd>основных вопросов</dd></div>
+            <div><dt>12</dt><dd>тем для разных встреч</dd></div>
             <div><dt>∞</dt><dd>времени, чтобы ответить</dd></div>
           </dl>
         </section>

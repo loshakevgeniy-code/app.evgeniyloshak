@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import rawDeck from '../src/data/deck.ru.json'
-import { assertGameInvariants, createGameSession, fisherYates, gameReducer, makeViewKey, type GameCommand } from '../src/features/game/engine'
+import { assertGameInvariants, createGameSession, eligibleQuestions, fisherYates, gameReducer, makeViewKey, type GameCommand } from '../src/features/game/engine'
 import { validateDeck } from '../src/data/validateDeck'
 import type { GameSession } from '../src/types'
 
@@ -28,6 +28,15 @@ function openFirstQuestion(state: GameSession) {
 describe('игровой движок', () => {
   it('перемешивает Fisher–Yates детерминированно', () => {
     expect(fisherYates([1, 2, 3, 4], () => 0)).toEqual([2, 3, 4, 1])
+  })
+
+  it('фильтрует 240 вопросов по роли и добровольным настройкам', () => {
+    expect(deck.cards.filter((card) => card.type === 'question')).toHaveLength(240)
+    expect(eligibleQuestions(deck, { role: 'close_person' })).toHaveLength(179)
+    expect(eligibleQuestions(deck, { role: 'mother' })).toHaveLength(198)
+    expect(eligibleQuestions(deck, { role: 'sister' })).toHaveLength(192)
+    expect(eligibleQuestions(deck, { role: 'sister', sharedChildhood: true })).toHaveLength(199)
+    expect(eligibleQuestions(deck, { role: 'sister', sharedChildhood: true, includePersonalTopics: true })).toHaveLength(220)
   })
 
   it('проходит партию на 4 вопроса по одному на главу', () => {
