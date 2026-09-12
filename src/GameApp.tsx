@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { CardBack, CardFace, ChapterSymbol, QuestionCardFace } from './components/Cards'
 import { AppIcon } from './components/AppIcon'
 import { AudioRecorder, RecordingsLibrary, type RecordingContext } from './components/AudioRecorder'
@@ -376,6 +376,42 @@ function ChapterIntro({ chapter, total, onDraw, onSkip }: { chapter: Chapter; to
   )
 }
 
+function RitualScreen({
+  eyebrow,
+  title,
+  description,
+  tone = 'wine',
+  children,
+}: {
+  eyebrow: string
+  title: string
+  description?: string
+  tone?: 'wine' | 'olive' | 'espresso'
+  children: ReactNode
+}) {
+  return (
+    <main className={`ritual-screen ritual-screen--${tone} game-table`}>
+      <section className="ritual-screen__panel">
+        <div className="ritual-screen__content">
+          <span className="ritual-screen__seal" aria-hidden="true"><LilyMark /></span>
+          <p className="eyebrow">{eyebrow}</p>
+          <h1>{title}</h1>
+          {description && <p className="ritual-screen__description">{description}</p>}
+          <div className="ritual-screen__actions">{children}</div>
+          <p className="ritual-screen__signature">LILYA <span /> БЛИЖЕ К ГЛАВНОМУ</p>
+        </div>
+      </section>
+      <aside className="ritual-screen__photo" aria-hidden="true">
+        <div className="ritual-screen__photo-copy">
+          <LilyMark />
+          <strong>Истории<br />объединяют</strong>
+          <span>Разговоры, которые остаются</span>
+        </div>
+      </aside>
+    </main>
+  )
+}
+
 function Catalog({
   deck,
   preferences,
@@ -557,6 +593,7 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
   const [recordingContext, setRecordingContext] = useState<RecordingContext | undefined>()
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [storyMenuOpen, setStoryMenuOpen] = useState(false)
   const [helper, setHelper] = useState<{ type: 'followup' | 'special'; selectedId?: string; showAll?: boolean } | null>(null)
   const [storageMessage, setStorageMessage] = useState(initialSave.corrupted ? 'Сохранённая партия была повреждена, поэтому мы начали с чистого состояния.' : '')
   const [otherTab, setOtherTab] = useState(false)
@@ -584,12 +621,19 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
 
   useEffect(() => {
     setDetailOpen(false)
+    setStoryMenuOpen(false)
     setHelper(null)
   }, [session?.activeQuestionId, session?.phase])
 
   useEffect(() => {
+    if (!helper?.selectedId) return
+    const sheet = document.querySelector<HTMLElement>('.modal__sheet')
+    if (sheet) sheet.scrollTop = 0
+  }, [helper?.selectedId])
+
+  useEffect(() => {
     window.scrollTo({ top: 0, left: 0 })
-  }, [screen, session?.phase, session?.currentChapterIndex])
+  }, [screen, session?.phase, session?.currentChapterIndex, session?.paused])
 
   const pairKey = session?.candidates.join('|') || ''
   useEffect(() => {
@@ -691,8 +735,8 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
     const safeSpecialCards = activeCard.requiresTopicOptIn ? specialCards.filter((card) => !sensitiveSpecialIds.has(card.id)) : specialCards
     const featuredSpecials = safeSpecialCards.filter((card) => card.coreCandidate)
     const choices = helper.type === 'special'
-      ? (helper.showAll ? safeSpecialCards : featuredSpecials)
-      : (helper.showAll ? safeFollowUps : featuredFollowUps)
+      ? (helper.showAll ? safeSpecialCards : featuredSpecials.slice(0, 4))
+      : (helper.showAll ? safeFollowUps : featuredFollowUps.slice(0, 4))
     return (
       <Modal
         title={helper.type === 'special' ? 'Специальный ход' : 'Уточнить историю'}
@@ -700,6 +744,10 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
         onClose={() => setHelper(null)}
         wide={Boolean(selected)}
       >
+        <div className="modal-safety-actions modal-safety-actions--mobile">
+          <button className="link-button" type="button" onClick={() => { setHelper(null); send('PAUSE') }}>Пауза</button>
+          <button className="link-button" type="button" onClick={() => { setHelper(null); send('GO_TO_CLOSING') }}>Закончить разговор</button>
+        </div>
         {selected ? (
           <div className="helper-selected">
             <CardFace card={selected} />
@@ -722,7 +770,7 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
             {!helper.showAll && <button className="button button--paper button--wide" type="button" onClick={() => setHelper({ ...helper, showAll: true })}>{helper.type === 'followup' ? `Все ${safeFollowUps.length} уточнений` : `Все ${safeSpecialCards.length} специальных ходов`}</button>}
           </>
         )}
-        <div className="modal-safety-actions">
+        <div className="modal-safety-actions modal-safety-actions--desktop">
           <button className="link-button" type="button" onClick={() => { setHelper(null); send('PAUSE') }}>Пауза</button>
           <button className="link-button" type="button" onClick={() => { setHelper(null); send('GO_TO_CLOSING') }}>Закончить разговор</button>
         </div>
@@ -734,33 +782,71 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
     if (!session) return null
     if (session.paused) {
       return (
-        <main className="pause-screen game-table">
-          <div className="pause-card">
-            <p className="eyebrow">Пауза</p><h1>Разговор остановлен</h1>
-            <p>Текущий вопрос скрыт. Если вы снимаете разговор отдельно, при необходимости остановите запись на той камере.</p>
-            <div className="button-stack">
-              <button className="button button--game" type="button" onClick={() => send('RESUME')}>Вернуться к разговору</button>
-              <button className="button button--paper" type="button" onClick={() => setScreen('home')}>На главный экран</button>
-              <button className="link-button" type="button" onClick={() => send('GO_TO_CLOSING')}>Закончить разговор</button>
-            </div>
+        <RitualScreen
+          eyebrow="Пауза · всё в порядке"
+          title="Разговор остановлен"
+          description="Текущий вопрос скрыт. Если вы снимаете разговор отдельно, при необходимости остановите запись и на той камере."
+          tone="olive"
+        >
+          <div className="button-stack">
+            <button className="button button--game" type="button" onClick={() => send('RESUME')}>Вернуться к разговору</button>
+            <button className="button button--paper" type="button" onClick={() => setScreen('home')}>На главный экран</button>
+            <button className="link-button" type="button" onClick={() => send('GO_TO_CLOSING')}>Закончить разговор</button>
           </div>
-        </main>
+        </RitualScreen>
       )
     }
 
     if (session.phase === 'rules') {
-      return <main className="play-page game-table"><div className="standalone-rules"><p className="eyebrow">Как играть</p><h1>Три простых шага</h1><RulesContent onStart={() => send('START_AFTER_RULES')} /></div></main>
+      return (
+        <RitualScreen eyebrow="Как играть" title="Три простых шага" tone="espresso">
+          <RulesContent onStart={() => send('START_AFTER_RULES')} />
+        </RitualScreen>
+      )
     }
 
     if (session.phase === 'closing_offer') {
       return (
-        <main className="play-page game-table"><section className="closing-screen"><p className="eyebrow">Финал · по желанию</p><h1>Открыть последнюю карточку?</h1><p>Она поможет завершить разговор, но её можно пропустить.</p><div className="button-row"><button className="button button--game" type="button" onClick={() => send('OPEN_CLOSING')}>Открыть финал</button><button className="button button--paper" type="button" onClick={() => send('FINISH')}>Закончить без карточки</button></div></section></main>
+        <RitualScreen
+          eyebrow="Финал · по желанию"
+          title="Открыть последнюю карточку?"
+          description="Она мягко завершит разговор. Можно открыть её сейчас или остановиться на уже сказанном."
+          tone="wine"
+        >
+          <div className="button-row">
+            <button className="button button--game" type="button" onClick={() => send('OPEN_CLOSING')}>Открыть финал</button>
+            <button className="button button--paper" type="button" onClick={() => send('FINISH')}>Закончить без карточки</button>
+          </div>
+        </RitualScreen>
+      )
+    }
+
+    if (session.phase === 'chapter_exhausted') {
+      return (
+        <RitualScreen
+          eyebrow={`${currentChapter.number} · ${currentChapter.title}`}
+          title="Эта глава рассказана"
+          description="Все новые карточки этой темы закончились. Можно перейти к следующей главе или мягко завершить разговор."
+          tone="olive"
+        >
+          <div className="button-row">
+            <button className="button button--game" type="button" onClick={() => send('NEXT_CHAPTER')}>Следующая глава</button>
+            <button className="button button--paper" type="button" onClick={() => send('GO_TO_CLOSING')}>Закончить разговор</button>
+          </div>
+        </RitualScreen>
       )
     }
 
     if (session.phase === 'closing_card' && closingCard) {
       return (
-        <main className="play-page game-table"><section className="single-card-stage"><CardFace card={closingCard} /><p className="detail-panel">{closingCard.detailPrompt}</p><button className="button button--game" type="button" onClick={() => send('FINISH')}>Завершить разговор</button></section></main>
+        <main className="closing-card-page game-table">
+          <div className="closing-card-page__brand" aria-hidden="true"><LilyMark /><span>LILYA · ФИНАЛ</span></div>
+          <section className="single-card-stage closing-card-stage">
+            <CardFace card={closingCard} />
+            <p className="detail-panel">{closingCard.detailPrompt}</p>
+            <button className="button button--game" type="button" onClick={() => send('FINISH')}>Завершить разговор</button>
+          </section>
+        </main>
       )
     }
 
@@ -774,9 +860,9 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
             {discussed.length > 0 && <ol className="discussed-list">{discussed.map((card) => <li key={card.id}><span>{card.id}</span><div><strong>{card.title}</strong><p>{card.prompt}</p></div></li>)}</ol>}
             {session.closingViewed && <p className="calm-note">Финальная карточка была открыта.</p>}
             <div className="button-row">
-              {discussed.length > 0 && <button className="button button--game" type="button" onClick={() => exportDiscussed(deck, session)}>Скачать список вопросов</button>}
+              <button className="button button--game" type="button" onClick={() => setScreen('home')}>На главный экран</button>
+              {discussed.length > 0 && <button className="button button--paper" type="button" onClick={() => exportDiscussed(deck, session)}>Скачать список вопросов</button>}
               <button className="button button--paper" type="button" onClick={() => setAudioModal('library')}>Мои записи</button>
-              <button className="button button--paper" type="button" onClick={() => setScreen('home')}>На главный экран</button>
               <button className="button button--paper" type="button" onClick={startSetup}>Новая партия</button>
             </div>
           </section>
@@ -785,7 +871,7 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
     }
 
     return (
-      <div className="play-page game-table">
+      <div className={`play-page play-page--active play-phase--${session.phase} game-table`}>
         <GameTopBar session={session} deck={deck} onPause={() => send('PAUSE')} onFinish={() => send('GO_TO_CLOSING')} onRules={() => setRulesOpen(true)} />
         <main className="play-main">
           {session.phase === 'chapter_intro' && <ChapterIntro chapter={currentChapter} total={deck.chapters.length} onDraw={() => send('DRAW_PAIR')} onSkip={() => send('SKIP_CHAPTER')} />}
@@ -832,33 +918,48 @@ export function GameApp({ deck, onBackToCabinet }: { deck: Deck; onBackToCabinet
             </section>
           )}
           {session.phase === 'guess' && activeCard && (
-            <section className="single-card-stage">
-              <QuestionCardFace card={activeCard} chapter={currentChapter} topic={topicForCard(deck, activeCard)} />
-              <div className="guess-panel"><p className="eyebrow">Сначала догадка</p><p>{activeCard.guess?.prompt}</p><div className="button-row"><button className="button button--game" type="button" onClick={() => send('START_STORY')}>Перейти к рассказу</button><button className="button button--paper" type="button" onClick={() => send('START_STORY')}>Без догадки</button></div></div>
-              <button className="link-button" type="button" onClick={() => send('SKIP_QUESTION')}>Другой вопрос</button>
+            <section className="story-stage story-stage--guess">
+              <div className="story-stage__card"><QuestionCardFace card={activeCard} chapter={currentChapter} topic={topicForCard(deck, activeCard)} /></div>
+              <aside className="story-stage__controls">
+                <p className="eyebrow">Сначала догадка</p>
+                <h2>Что, по-вашему, ответит герой?</h2>
+                <div className="guess-panel"><p>{activeCard.guess?.prompt}</p></div>
+                <div className="button-stack">
+                  <button className="button button--game" type="button" onClick={() => send('START_STORY')}>Перейти к рассказу</button>
+                  <button className="button button--paper" type="button" onClick={() => send('START_STORY')}>Без догадки</button>
+                  <button className="link-button" type="button" onClick={() => send('SKIP_QUESTION')}>Другой вопрос</button>
+                </div>
+              </aside>
             </section>
           )}
           {session.phase === 'story' && activeCard && (
-            <section className="single-card-stage">
-              {session.recordingMode === 'external_camera' && <p className="recording-badge">Съёмка: отдельная камера</p>}
-              {session.recordingMode === 'built_in_audio' && <p className="recording-badge">Диктофон готов · запись включаете вы</p>}
-              <QuestionCardFace card={activeCard} chapter={currentChapter} topic={topicForCard(deck, activeCard)} />
-              {detailOpen && <p className="detail-panel">{activeCard.detailPrompt}</p>}
-              <button className="voice-record-cta" type="button" onClick={() => openRecorder({ cardId: activeCard.id, title: activeCard.title, prompt: activeCard.prompt })}><span><AppIcon name="microphone" /></span><span><strong>Записать этот разговор</strong><small>Сохранится только на устройстве</small></span></button>
-              <div className="story-tools">
-                <button className="tool-button" type="button" onClick={() => setDetailOpen((value) => !value)}>{detailOpen ? 'Скрыть подсказку' : 'Помочь начать рассказ'}</button>
-                <button className="tool-button" type="button" onClick={() => setHelper({ type: 'followup' })}>Уточнить</button>
-                <button className="tool-button" type="button" onClick={() => setHelper({ type: 'special' })}>Специальный ход</button>
+            <section className="story-stage">
+              <div className="story-stage__card">
+                {session.recordingMode === 'external_camera' && <p className="recording-badge">Съёмка: отдельная камера</p>}
+                {session.recordingMode === 'built_in_audio' && <p className="recording-badge">Диктофон готов · запись включаете вы</p>}
+                <QuestionCardFace card={activeCard} chapter={currentChapter} topic={topicForCard(deck, activeCard)} />
               </div>
+              <aside className="story-stage__controls">
+                <p className="eyebrow">История в центре</p>
+                <h2>Слушайте без спешки</h2>
+                <p className="story-stage__lead">Здесь нет правильных ответов. Можно вспоминать, делать паузы и уходить в детали.</p>
+                {detailOpen && <p className="detail-panel">{activeCard.detailPrompt}</p>}
+                <button className="voice-record-cta" type="button" onClick={() => openRecorder({ cardId: activeCard.id, title: activeCard.title, prompt: activeCard.prompt })}><span><AppIcon name="microphone" /></span><span><strong>Записать этот разговор</strong><small>Сохранится только на устройстве</small></span></button>
+                <div className="story-tools">
+                  <button className="tool-button" type="button" onClick={() => setDetailOpen((value) => !value)}>{detailOpen ? 'Скрыть подсказку' : 'Помочь начать рассказ'}</button>
+                  <button className="tool-button" type="button" onClick={() => setHelper({ type: 'followup' })}>Уточнить</button>
+                  <button className="tool-button" type="button" onClick={() => setHelper({ type: 'special' })}>Специальный ход</button>
+                </div>
+              </aside>
               <div className="story-complete">
                 <button className="button button--game button--wide" type="button" onClick={() => send('COMPLETE_QUESTION')}>Вопрос обсудили →</button>
-                <button className="button button--paper button--wide" type="button" onClick={() => send('SKIP_QUESTION')}>Не помню / другой</button>
-                <button className="button button--paper button--wide" type="button" onClick={() => send('SKIP_CHAPTER')}>Изменить тему</button>
+                <button className="story-more-trigger" type="button" aria-label="Другие действия" aria-expanded={storyMenuOpen} onClick={() => setStoryMenuOpen((open) => !open)}><span aria-hidden="true">•••</span><small>Ещё</small></button>
+                <div className={`story-more-menu ${storyMenuOpen ? 'is-open' : ''}`}>
+                  <button className="button button--paper button--wide" type="button" onClick={() => send('SKIP_QUESTION')}>Не помню / другой</button>
+                  <button className="button button--paper button--wide" type="button" onClick={() => send('SKIP_CHAPTER')}>Изменить тему</button>
+                </div>
               </div>
             </section>
-          )}
-          {session.phase === 'chapter_exhausted' && (
-            <section className="closing-screen"><p className="eyebrow">{currentChapter.number} · {currentChapter.title}</p><h1>В этой главе больше нет новых карточек</h1><p>Можно перейти дальше или закончить разговор. Никаких штрафов за пропуски нет.</p><div className="button-row"><button className="button button--game" type="button" onClick={() => send('NEXT_CHAPTER')}>Следующая глава</button><button className="button button--paper" type="button" onClick={() => send('GO_TO_CLOSING')}>Закончить разговор</button></div></section>
           )}
         </main>
       </div>
